@@ -1,0 +1,19 @@
+#scatter {
+    float:left;
+    vertical-align: middle;
+  }
+
+#pcp {
+    float:right;
+    vertical-align: middle;
+  }
+
+#container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+#legend {
+    float:left;
+}
