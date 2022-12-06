@@ -1,0 +1,38 @@
+#scatter {
+    float:left;
+    vertical-align: middle;
+  }
+
+#pcp {
+    float:right;
+    vertical-align: middle;
+  }
+
+#container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+#legend {
+    float:left;
+}
+
+#test {
+  border: 3px solid black;
+}
+
+#buttons {
+  border: 1px solid red;
+  position:relative;
+  left: 0;
+  top: 0;
+}
+
+.tick {
+  color: white;
+}
+
+.input {
+  float: left;
+}
