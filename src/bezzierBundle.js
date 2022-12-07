@@ -9,6 +9,7 @@ var data = d3.csv("data/test2.csv")
             return datum['Label'];
         })
         
+        // Setup colours
         var colorScale = d3.scaleOrdinal();
         console.log(data['Label'])
     
@@ -23,8 +24,9 @@ var data = d3.csv("data/test2.csv")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
+        // Main store of dimentions that doesnt get changed
         dims = d3.keys(data[0]).filter(function(d) {
-            return (d == "Label"|| d.endsWith("_m") || d.endsWith("_m2")) ?  null : d
+            return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
         });
 
         dims2 = d3.keys(data[0]).filter(function(d) {
@@ -107,11 +109,9 @@ var data = d3.csv("data/test2.csv")
             }
             
             // Create bezzier for this row 
-            return d3.line().curve(d3.curveBasis)(ctrPts);
-            
+            return d3.line().curve(d3.curveBasis)(ctrPts); 
             
         }
-        
 
         // Plot paths
         pcp.selectAll("myPath")
@@ -141,32 +141,129 @@ var data = d3.csv("data/test2.csv")
             .attr("y", "-15");
             //.attr("transform", "rotate(-50)");
 
-        function select(elem) {
-            // Check if already selected
-            var selected_pcp = d3.select("#pcp").select('svg').select('g').selectAll('path').select(
-                function(d) {
-                    if (d == null) {
-                        return null
-                    } else {
-                        return d['Label']==elem?this:null;
-                    };}
-            ).style("opacity", 0.5);
+        function filter(elem) {
+            dims2 = dims2.filter(function(d) {
+                return d !== elem;
+            })
         }
 
-        var selects = d3.selectAll("myAxis").append("svg")
-            .data(dims2)
+        /*
+        var selectRegion = d3.selectAll("#buttons")
+            .attr("width", "400")
+            .attr("height", "400")
+            .attr('transform', 'translate(0,' + (100 / 4) + ')')
+            .style("border", "1px solid black");
+
+        
+            var selects = selectRegion.selectAll("mybuttons").data(dims2)
             .enter()
-            .append("g").attr("transform", function(d) { return "translate(" + x(d) + ")"; })
-            .each(function(d) {
-                d3.select(this).call(d3.axisLeft().scale(y_scales[d]));
-            })
+            .append("g")
             .append("input")
             .attr("type", "checkbox")
             .attr("checked", true)
-            .attr("id", function(d) {return "button_" + d;})
-            .on("click", filter);
+            .attr("id", function(d) {return "button_" + d;}) // 100 is where the first dot appears. 25 is the distance between dots
+            .style("fill", function(d){ return colorScale(d)})
+            .on("click", update).append("text")
+            .attr("x", 125)
+            .attr("y", function(d,i){ return 40 + i*(3+20)}) // 100 is where the first dot appears. 25 is the distance between dots
+            .style("fill", function(d){ return colorScale(d)})
+            .text(function(d){ return d})
+            .attr("text-anchor", "right")
+            .style("alignment-baseline", "middle")
+        .on("click", filter);;
             
-            
+
+    
+        selectRegion.append("text")
+        .text("Cluster")
+        .attr("x", 90)
+        .attr("y", 20)
+        .attr("text-anchor", "left")
+        
+
+        selectRegion.selectAll("mylabels")
+        .data(dims2)
+        .enter()
+        .append("text")
+            .attr("x", 125)
+            .attr("y", function(d,i){ return 40 + i*(3+20)}) // 100 is where the first dot appears. 25 is the distance between dots
+            .style("fill", function(d){ return colorScale(d)})
+            .text(function(d){ return d})
+            .attr("text-anchor", "right")
+            .style("alignment-baseline", "middle")
+        .on("click", filter);
+*/
         console.log(dims2)
 
+        var toggles = d3.selectAll("#buttons").selectAll("mytext").append("svg").attr("width", 500).attr("height", 500)
+        toggles
+            .data(dims2)
+            .enter().append("g")
+            .append("text")
+            .attr("text", function(d) {return d})
+            .attr("onClick", "update")
+            .on("click", update);
+
+
+        var filtered = [];
+        /* Update the graph dimensions
+            TODO: fix button interactions
+            Works when buttons added with D3 
+        */
+        function update (dim){    
+            dims2 = dims;
+            console.log("before", filtered)
+            if (filtered.includes(dim)) {
+                filtered = filtered.filter(function(dim2) {
+                    return dim2 !== dim;
+                })
+            } else {
+                filtered.push(dim);
+            }
+            console.log("add", filtered)
+            filtered.forEach(dim1 => {
+                dims2 = dims2.filter(function(dim2) {
+                    return dim2 !== dim1;
+                })
+            })
+
+            var t = d3.transition()
+                .duration(1500)
+                .ease(d3.easeLinear);
+            pcp.selectAll("g").transition(t).remove();
+            pcp.selectAll("path").transition(t).remove();
+
+            console.log(filtered)
+            
+
+                pcp.selectAll("myAxis").data(dims2).enter()
+                .append("g")
+                .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+                .each(function(d) {
+                    d3.select(this).call(d3.axisLeft().scale(y_scales[d]));
+                })
+                .append("text")
+                .style("text-anchor", "middle")
+                .text(function(d) { return d; })
+                .style("fill", "black")
+                .attr("y", "-15");
+
+
+         // Plot paths
+         pcp.selectAll("myPath")
+         .data(data)
+         .enter()
+         .append("path")
+         //.attr("class", function(d) { return d['Label']; })
+         .attr("d", path)
+         .style("fill", "none")
+         .style("opacity", 0.5)
+         .style("stroke", function(datum, index){
+             return colorScale(datum['Label'])
+         })
+         .attr("selected", 0);
+        }
+
+     
     });
+console.log(data)

@@ -23,16 +23,8 @@
 }
 
 #buttons {
-  border: 1px solid red;
-  position:relative;
-  left: 0;
-  top: 0;
-}
-
-.tick {
-  color: white;
-}
-
-.input {
-  float: left;
+  padding: 15px;
+  display: inline-block;
+  background-color: bisque;
+  border-radius: 5px;
 }

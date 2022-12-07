@@ -3,31 +3,31 @@
 <html lang="en">
 <head>
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="src/d3.paracoords.js"></script>
-    <script src="src/main.js"></script>
-    <script src="src/parasol.standalone.js"></script>
+    <script src="src/bezzierBundle.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/css/bootstrap3/bootstrap-switch.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/parcoords.css">
+    
 </head>
 <body>
-    <div id="container" class=""slickgrid-container>
-        <div>
-            <div id="scatter"></div>
-            <div id="legend"></div> 
+    <div id="test"></div>
+    <div id="buttons">
+        <div class="custom-control custom-switch">
+            <input class="custom-control-input" type="checkbox" role="switch" id="Age" checked>
+            <label class="custom-control-label" for="Age">Age</label>
+        </div>
+        <div class="custom-control custom-switch">
+            <input class="custom-control-input" type="checkbox" role="switch" id="Work load Average/day" checked>
+            <label class="custom-control-label" for="Work load Average/day">Work load Average/day</label>
+        </div>
+        <div class="custom-control custom-switch">
+            <input class="custom-control-input" type="checkbox" role="switch" id="Body mass index" checked>
+            <label class="custom-control-label" for="Body mass index">Body mass index</label>
+        </div>
+        <div class="custom-control custom-switch">
+            <input class="custom-control-input" type="checkbox" role="switch" onclick="update(this.id)" id="Absenteeism time in hours" checked>
+            <label class="custom-control-label" for="Absenteeism time in hours">Absenteeism time in hours</label>
         </div>
     </div>
-
-    <div id="pcp">
-    <div id="p0" class="parcoords" style="height:200px; width:800px;"></div>
-    <div id="p0" class="pc" style="height:200px; width:800px;"></div>
-    </div>
-    <div id="grid" style="width:100%; height:500px;" class="slickgrid-container"></div>
-
-    <div id="testing"></div>
-
-    <div id="test"></div> 
-
-<script>
-</script>
 </body>
 </html>
