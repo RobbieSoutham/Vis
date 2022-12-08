@@ -1,8 +1,8 @@
 // Try to create bezzier from scratch acording to control points in paper
 var data = d3.csv("data/test2.csv")
     .get(function(data) {
-        var margin = {top: 150, right: 10, bottom: 10, left: 10},
-    width = window.innerWidth - 100 - margin.left - margin.right,
+        var margin = {top: 30, right: 0, bottom: 30, left: 0},
+    width = 1000 - margin.left - margin.right,
     height = 700 - margin.top - margin.bottom;
         
         var cDomain = d3.extent(data, function(datum, index){
@@ -147,63 +147,33 @@ var data = d3.csv("data/test2.csv")
             })
         }
 
-        /*
-        var selectRegion = d3.selectAll("#buttons")
-            .attr("width", "400")
-            .attr("height", "400")
-            .attr('transform', 'translate(0,' + (100 / 4) + ')')
-            .style("border", "1px solid black");
-
-        
-            var selects = selectRegion.selectAll("mybuttons").data(dims2)
-            .enter()
-            .append("g")
-            .append("input")
-            .attr("type", "checkbox")
-            .attr("checked", true)
-            .attr("id", function(d) {return "button_" + d;}) // 100 is where the first dot appears. 25 is the distance between dots
-            .style("fill", function(d){ return colorScale(d)})
-            .on("click", update).append("text")
-            .attr("x", 125)
-            .attr("y", function(d,i){ return 40 + i*(3+20)}) // 100 is where the first dot appears. 25 is the distance between dots
-            .style("fill", function(d){ return colorScale(d)})
-            .text(function(d){ return d})
-            .attr("text-anchor", "right")
-            .style("alignment-baseline", "middle")
-        .on("click", filter);;
-            
-
-    
-        selectRegion.append("text")
-        .text("Cluster")
-        .attr("x", 90)
-        .attr("y", 20)
-        .attr("text-anchor", "left")
         
 
-        selectRegion.selectAll("mylabels")
-        .data(dims2)
-        .enter()
-        .append("text")
-            .attr("x", 125)
-            .attr("y", function(d,i){ return 40 + i*(3+20)}) // 100 is where the first dot appears. 25 is the distance between dots
-            .style("fill", function(d){ return colorScale(d)})
-            .text(function(d){ return d})
-            .attr("text-anchor", "right")
-            .style("alignment-baseline", "middle")
-        .on("click", filter);
-*/
-        console.log(dims2)
-
-        var toggles = d3.selectAll("#buttons").selectAll("mytext").append("svg").attr("width", 500).attr("height", 500)
-        toggles
-            .data(dims2)
-            .enter().append("g")
+        // Build selection toggles for dimensions
+        d3.selectAll("#buttons")
             .append("text")
-            .attr("text", function(d) {return d})
-            .attr("onClick", "update")
-            .on("click", update);
+            .text("Dimensions")
+        
+        d3.select("#buttons").selectAll("myAxis")
+            .data(dims2)
+            .enter()
+            .append("div")
+            .attr("class", "btn-containers custom-control custom-switch")
 
+        d3.selectAll(".btn-containers")
+            .append("input")
+            .attr("class", "custom-control-input")
+            .attr("id", function(dim) { return dim })
+            .attr("type", "checkbox")
+            .attr("role", "switch")
+            .attr("checked", true)
+            .on("click", update)
+
+        d3.selectAll(".btn-containers")
+            .append("label")
+            .text(function(dim) { return dim })
+            .attr("for", function(dim) { return dim })
+            .attr("class", "custom-control-label")
 
         var filtered = [];
         /* Update the graph dimensions
@@ -212,6 +182,8 @@ var data = d3.csv("data/test2.csv")
         */
         function update (dim){    
             dims2 = dims;
+
+            // Update displayed dims
             console.log("before", filtered)
             if (filtered.includes(dim)) {
                 filtered = filtered.filter(function(dim2) {
@@ -227,43 +199,47 @@ var data = d3.csv("data/test2.csv")
                 })
             })
 
-            var t = d3.transition()
-                .duration(1500)
-                .ease(d3.easeLinear);
-            pcp.selectAll("g").transition(t).remove();
-            pcp.selectAll("path").transition(t).remove();
-
-            console.log(filtered)
+            // Remove previous plot
+            pcp.selectAll("g").transition().remove();
+            pcp.selectAll("path").transition().remove();
             
 
-                pcp.selectAll("myAxis").data(dims2).enter()
-                .append("g")
-                .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
-                .each(function(d) {
-                    d3.select(this).call(d3.axisLeft().scale(y_scales[d]));
-                })
-                .append("text")
-                .style("text-anchor", "middle")
-                .text(function(d) { return d; })
-                .style("fill", "black")
-                .attr("y", "-15");
+            // Replot axis
+            pcp.selectAll("myAxis").data(dims2).enter()
+            .append("g")
+            .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+            .each(function(d) {
+                d3.select(this).call(d3.axisLeft().scale(y_scales[d]));
+            })
+            .append("text")
+            .style("text-anchor", "middle")
+            .text(function(d) { return d; })
+            .style("fill", "black")
+            .attr("y", "-15");
 
 
-         // Plot paths
-         pcp.selectAll("myPath")
-         .data(data)
-         .enter()
-         .append("path")
-         //.attr("class", function(d) { return d['Label']; })
-         .attr("d", path)
-         .style("fill", "none")
-         .style("opacity", 0.5)
-         .style("stroke", function(datum, index){
-             return colorScale(datum['Label'])
-         })
-         .attr("selected", 0);
+            // Replot paths
+            pcp.selectAll("myPath")
+            .data(data)
+            .enter()
+            .append("path")
+            //.attr("class", function(d) { return d['Label']; })
+            .attr("d", path)
+            .style("fill", "none")
+            .style("opacity", 0.5)
+            .style("stroke", function(datum, index){
+                return colorScale(datum['Label'])
+            })
+            .attr("selected", 0);
         }
 
      
     });
 console.log(data)
+
+function getInputHTML(dim) {
+    return '<div class="custom-control custom-switch"> \
+                <input class="custom-control-input" type="checkbox" role="switch" id="' + dim + '" checked> \
+            <label class="custom-control-label" for=' + dim + '>' + dim + '</label> \
+        </div>'
+}

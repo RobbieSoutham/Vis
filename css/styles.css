@@ -28,3 +28,17 @@
   background-color: bisque;
   border-radius: 5px;
 }
+
+#secondRow {
+  display: flex;
+}
+
+#buttons {
+  max-width: 400px;
+  max-height: 300px;
+}
+
+#buttons div {
+  margin-top: 5px;
+}
+
