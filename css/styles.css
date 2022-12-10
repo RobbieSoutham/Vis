@@ -34,11 +34,26 @@
 }
 
 #buttons {
-  max-width: 400px;
-  max-height: 300px;
+  width: 300px;
 }
 
 #buttons div {
   margin-top: 5px;
 }
 
+.bundle-toggle {
+  padding-bottom: 20px;
+}
+
+.custom-switch.custom-switch {
+  padding-left: 0px;
+}
+.custom-switch.custom-switch .custom-control-label {
+  display: flex;
+}
+.custom-switch.custom-switch .custom-control-label::before {
+  left: 90%;
+}
+.custom-switch.custom-switch .custom-control-label::after {
+  left: calc(90% + 2px);
+}

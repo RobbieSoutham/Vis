@@ -196,6 +196,7 @@ function buildControls(data) {
         d3.selectAll("#buttons")
         .append("text")
         .text("Dimensions")
+        .style("font-weight", "bold")
     
     d3.select("#buttons").selectAll("myAxis")
         .data(displayDims)
