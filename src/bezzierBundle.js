@@ -203,6 +203,7 @@ var data = d3.csv("data/test2.csv")
             pcp.selectAll("g").transition().remove();
             pcp.selectAll("path").transition().remove();
             
+            
 
             // Replot axis
             pcp.selectAll("myAxis").data(dims2).enter()
@@ -242,4 +243,40 @@ function getInputHTML(dim) {
                 <input class="custom-control-input" type="checkbox" role="switch" id="' + dim + '" checked> \
             <label class="custom-control-label" for=' + dim + '>' + dim + '</label> \
         </div>'
+}
+// Implementation based on: https://ieeexplore.ieee.org/document/8107953
+function path(d, row) {//
+    let ctrPts = [];
+
+    // Portion of the xscale reserved for non bundled lines
+    let nonBundledPortion = 4
+
+    // Build series of control points for the bezier around each axis
+    for (let i = 0; i < dims2.length; i++) {
+        if (i != 0) {
+            // First control point - actual value
+            ctrPts.push([
+                x(dims2[i]) - (x(dims2[i]) - x(dims2[i-1]))/nonBundledPortion, 
+                y_scales[dims2[i]](d[dims2[i]+"_m"])])
+
+            
+            // Second is mean of the cluster
+            ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]+"_m"])])
+        }
+
+        // Actual value and mean of cluster
+        ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]])])
+        ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]+"_m"])])
+
+        // Mean of cluster after axis moved a portion of the x scale
+        if (i != dims2.length - 1) {
+            ctrPts.push([
+                x(dims2[i]) + (x(dims2[i+1]) - x(dims2[i]))/nonBundledPortion, 
+                y_scales[dims2[i]](d[dims2[i]+"_m"])])
+            }    
+    }
+    
+    // Create bezzier for this row 
+    return d3.line().curve(d3.curveBasis)(ctrPts); 
+    
 }

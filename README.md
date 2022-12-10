@@ -6,9 +6,10 @@ Need to launch on webserver. If using VS code just download the "Live Server" ex
 
 TODO:
 - [x] Finish axis filtering
-- [] Implement reordering
+- [x] Implement reordering
+- [x] Toggle for line bundling
+- [x] Update spacing when axis is removed
 - [] Add violin + beeswarm plots
 - [] Implement brush changes
 - [] Add FAMD plot
 - [] Add point selection
-- [] Update spacing when axis is removed
