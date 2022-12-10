@@ -13,3 +13,4 @@ TODO:
 - [ ] Implement brush changes
 - [ ] Add FAMD plot
 - [ ] Add point selection
+- [ ] Test on python live server
