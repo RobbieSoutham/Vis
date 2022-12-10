@@ -9,7 +9,8 @@ TODO:
 - [x] Implement reordering
 - [x] Toggle for line bundling
 - [x] Update spacing when axis is removed
-- [] Add violin + beeswarm plots
-- [] Implement brush changes
-- [] Add FAMD plot
-- [] Add point selection
+- [ ] Add violin + beeswarm plots
+- [ ] Implement brush changes
+- [ ] Add FAMD plot
+- [ ] Add point selection
+- [ ] Test on python live server
