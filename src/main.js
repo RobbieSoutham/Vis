@@ -175,7 +175,8 @@ function buildControls(data) {
     
     d3.select("#buttons")
         .append("div")
-        .attr("class", "btn-containers custom-control custom-switch bundle-toggle")
+        .attr("class", "custom-control custom-switch bundle-toggle")
+    
     d3.select("#buttons")
         .append("div")
         .attr("class", "bundle-slider")
@@ -199,7 +200,11 @@ function buildControls(data) {
         .text("Enabled")
         .attr("for", "bundleToggle")
         .attr("class", "custom-control-label")
-
+        d3.selectAll(".bundle-slider")
+        .append("label")
+        .text("Non-bundled portion")
+        .attr("for", "bundleSlider")
+        .attr("class", "form-label")
     d3.select(".bundle-slider")
         .append("input")
         .attr("type", "range")
@@ -214,11 +219,7 @@ function buildControls(data) {
             drawPcp(data);
         })
 
-    d3.selectAll(".bundle-slider")
-        .append("label")
-        .text("Non-bundled portion")
-        .attr("for", "bundleSlider")
-        .attr("class", "form-label")
+    
 
     // Build selection toggles for dimensions
     d3.selectAll("#buttons")
@@ -230,7 +231,7 @@ function buildControls(data) {
         .data(displayDims)
         .enter()
         .append("div")
-        .attr("class", "btn-containers custom-control custom-switch dims-toggle")
+        .attr("class", "custom-control custom-switch dims-toggle")
 
     d3.selectAll(".dims-toggle")
         .append("input")

@@ -110,7 +110,7 @@ var data = d3.csv("data/test2.csv")
             return (d == "Label") ?  null : d
         });
 
-        dims2 = d3.keys(data[0]).filter(function(d) {
+        displayDims = d3.keys(data[0]).filter(function(d) {
             return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") ) ?  null : d
         });
         
@@ -130,12 +130,12 @@ var data = d3.csv("data/test2.csv")
         }
 
         // Get x scale
-        var a = width/dims2.length;
+        var a = width/displayDims.length;
         var means = a/4;
         var dim = a/2
 
         function getScales() {
-            var splitSize = width/dims2.length;
+            var splitSize = width/displayDims.length;
             bundled = splitSize/2;
             nonBundled = splitSize/4;
             var range = [];
@@ -163,7 +163,7 @@ var data = d3.csv("data/test2.csv")
         var x2 = d3.scalePoint()
             .range([0, width])
             .padding(10)
-            .domain(dims2);
+            .domain(displayDims);
 
         function mapDims(d) {
             ps = [];
@@ -195,6 +195,8 @@ var data = d3.csv("data/test2.csv")
         
 
         // Plot paths
+        update(pcp, data);
+        /*
         pcp.selectAll("myPath")
             .data(data)
             .enter()
@@ -207,9 +209,9 @@ var data = d3.csv("data/test2.csv")
                 return colorScale(datum['Label'])
             })
             .attr("selected", 0);
-
+*/
         // Setup axis
-        pcp.selectAll("myAxis").data(dims2).enter()
+        pcp.selectAll("myAxis").data(displayDims).enter()
             .append("g")
             .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
             .each(function(d) {
@@ -415,7 +417,26 @@ var data = d3.csv("data/clustered_dataset.csv")
     };
 });
 
-
+function update(elem, data) {
+    elem.selectAll("myPath")
+        .data(data)
+        .join(
+            function(enter) {
+                return enter.append("path")
+                //.attr("class", function(d) { return d['Label']; })
+                .attr("d", path)
+                .style("fill", "none")
+                .style("opacity", 0.5)
+                .style("stroke", function(datum, index){
+                    return brush(datum['Label'])
+                })
+                .attr("selected", 0) 
+            },
+            function (update) {
+                update.style("stroke", "blue")
+            }
+        );
+}
 
 
 

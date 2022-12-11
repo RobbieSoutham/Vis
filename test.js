@@ -181,7 +181,7 @@ var data = d3.csv("data/clustered_dataset.csv")
             .attr("width", "20")
             .attr("height", "20")
             .style("fill", function(d){ return colorScale(d)})
-        .on("click", update(pcp, data));
+        .on("click", selection);
         
 
     legend.selectAll("mylabels")
@@ -256,7 +256,7 @@ function update(elem, data) {
                 .style("fill", "none")
                 .style("opacity", 0.5)
                 .style("stroke", function(datum, index){
-                    return colorScale(datum['Label'])
+                    return brush(datum['Label'])
                 })
                 .attr("selected", 0) 
             },

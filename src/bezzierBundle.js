@@ -29,15 +29,15 @@ var data = d3.csv("data/test2.csv")
             return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
         });
 
-        dims2 = d3.keys(data[0]).filter(function(d) {
+        displayDims = d3.keys(data[0]).filter(function(d) {
             return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
         });
         
         
         // Get scale for each dimension
         var y_scales = {};
-        for (dim in dims2) {
-            let name = dims2[dim]
+        for (dim in displayDims) {
+            let name = displayDims[dim]
             y_scales[name] = d3.scaleLinear()
                 .domain(d3.extent(data, function(d) {return +d[name];}))
                 .range([height, 0])
@@ -74,7 +74,7 @@ var data = d3.csv("data/test2.csv")
         var x = d3.scalePoint()
             .range([0,width])
             .padding(10)
-            .domain(dims2)
+            .domain(displayDims)
 
         // Implementation based on: https://ieeexplore.ieee.org/document/8107953
         function path(d, row) {//
@@ -84,27 +84,27 @@ var data = d3.csv("data/test2.csv")
             let nonBundledPortion = 4
 
             // Build series of control points for the bezier around each axis
-            for (let i = 0; i < dims2.length; i++) {
+            for (let i = 0; i < displayDims.length; i++) {
                 if (i != 0) {
                     // First control point - actual value
                     ctrPts.push([
-                        x(dims2[i]) - (x(dims2[i]) - x(dims2[i-1]))/nonBundledPortion, 
-                        y_scales[dims2[i]](d[dims2[i]+"_m"])])
+                        x(displayDims[i]) - (x(displayDims[i]) - x(displayDims[i-1]))/nonBundledPortion, 
+                        y_scales[displayDims[i]](d[displayDims[i]+"_m"])])
 
                     
                     // Second is mean of the cluster
-                    ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]+"_m"])])
+                    ctrPts.push([x(displayDims[i]), y_scales[displayDims[i]](d[displayDims[i]+"_m"])])
                 }
 
                 // Actual value and mean of cluster
-                ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]])])
-                ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]+"_m"])])
+                ctrPts.push([x(displayDims[i]), y_scales[displayDims[i]](d[displayDims[i]])])
+                ctrPts.push([x(displayDims[i]), y_scales[displayDims[i]](d[displayDims[i]+"_m"])])
 
                 // Mean of cluster after axis moved a portion of the x scale
-                if (i != dims2.length - 1) {
+                if (i != displayDims.length - 1) {
                     ctrPts.push([
-                        x(dims2[i]) + (x(dims2[i+1]) - x(dims2[i]))/nonBundledPortion, 
-                        y_scales[dims2[i]](d[dims2[i]+"_m"])])
+                        x(displayDims[i]) + (x(displayDims[i+1]) - x(displayDims[i]))/nonBundledPortion, 
+                        y_scales[displayDims[i]](d[displayDims[i]+"_m"])])
                     }    
             }
             
@@ -128,7 +128,7 @@ var data = d3.csv("data/test2.csv")
             .attr("selected", 0);
 
         // Setup axis
-        pcp.selectAll("myAxis").data(dims2).enter()
+        pcp.selectAll("myAxis").data(displayDims).enter()
             .append("g")
             .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
             .each(function(d) {
@@ -142,7 +142,7 @@ var data = d3.csv("data/test2.csv")
             //.attr("transform", "rotate(-50)");
 
         function filter(elem) {
-            dims2 = dims2.filter(function(d) {
+            displayDims = displayDims.filter(function(d) {
                 return d !== elem;
             })
         }
@@ -155,7 +155,7 @@ var data = d3.csv("data/test2.csv")
             .text("Dimensions")
         
         d3.select("#buttons").selectAll("myAxis")
-            .data(dims2)
+            .data(displayDims)
             .enter()
             .append("div")
             .attr("class", "btn-containers custom-control custom-switch")
@@ -181,7 +181,7 @@ var data = d3.csv("data/test2.csv")
             Works when buttons added with D3 
         */
         function update (dim){    
-            dims2 = dims;
+            displayDims = dims;
 
             // Update displayed dims
             console.log("before", filtered)
@@ -194,7 +194,7 @@ var data = d3.csv("data/test2.csv")
             }
             console.log("add", filtered)
             filtered.forEach(dim1 => {
-                dims2 = dims2.filter(function(dim2) {
+                displayDims = displayDims.filter(function(dim2) {
                     return dim2 !== dim1;
                 })
             })
@@ -206,7 +206,7 @@ var data = d3.csv("data/test2.csv")
             
 
             // Replot axis
-            pcp.selectAll("myAxis").data(dims2).enter()
+            pcp.selectAll("myAxis").data(displayDims).enter()
             .append("g")
             .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
             .each(function(d) {
@@ -243,40 +243,4 @@ function getInputHTML(dim) {
                 <input class="custom-control-input" type="checkbox" role="switch" id="' + dim + '" checked> \
             <label class="custom-control-label" for=' + dim + '>' + dim + '</label> \
         </div>'
-}
-// Implementation based on: https://ieeexplore.ieee.org/document/8107953
-function path(d, row) {//
-    let ctrPts = [];
-
-    // Portion of the xscale reserved for non bundled lines
-    let nonBundledPortion = 4
-
-    // Build series of control points for the bezier around each axis
-    for (let i = 0; i < dims2.length; i++) {
-        if (i != 0) {
-            // First control point - actual value
-            ctrPts.push([
-                x(dims2[i]) - (x(dims2[i]) - x(dims2[i-1]))/nonBundledPortion, 
-                y_scales[dims2[i]](d[dims2[i]+"_m"])])
-
-            
-            // Second is mean of the cluster
-            ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]+"_m"])])
-        }
-
-        // Actual value and mean of cluster
-        ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]])])
-        ctrPts.push([x(dims2[i]), y_scales[dims2[i]](d[dims2[i]+"_m"])])
-
-        // Mean of cluster after axis moved a portion of the x scale
-        if (i != dims2.length - 1) {
-            ctrPts.push([
-                x(dims2[i]) + (x(dims2[i+1]) - x(dims2[i]))/nonBundledPortion, 
-                y_scales[dims2[i]](d[dims2[i]+"_m"])])
-            }    
-    }
-    
-    // Create bezzier for this row 
-    return d3.line().curve(d3.curveBasis)(ctrPts); 
-    
 }

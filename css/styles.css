@@ -34,16 +34,13 @@
 }
 
 #buttons {
-  width: 300px;
+  width: 600px;
 }
 
 #buttons div {
   margin-top: 5px;
 }
 
-.bundle-toggle {
-  padding-bottom: 20px;
-}
 
 .custom-switch.custom-switch {
   padding-left: 0px;
@@ -56,4 +53,11 @@
 }
 .custom-switch.custom-switch .custom-control-label::after {
   left: calc(90% + 2px);
+}
+
+
+.bundle-slider {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 20px;
 }
