@@ -13,6 +13,8 @@ var filtered = []
 var pcp = null;
 var dragging = {}
 var axisGroup = []
+// Fraction of distance between axis reserved for non bundled lines
+var nonBundledPortion = 4
 var bundlingEnabled = true;
 
 d3.csv("data/test2.csv").then( function(data) {
@@ -134,8 +136,6 @@ function drawPcp(data) {
     }
     let ctrPts = [];
 
-    // Portion of the xscale reserved for non bundled lines
-    let nonBundledPortion = 4
 
     // Build series of control points for the bezier around each axis
     for (let i = 0; i < displayDims.length; i++) {
@@ -168,9 +168,17 @@ function drawPcp(data) {
 }
 
 function buildControls(data) {
+    d3.selectAll("#buttons")
+        .append("text")
+        .text("Line bundling")
+        .style("font-weight", "bold")
+    
     d3.select("#buttons")
         .append("div")
         .attr("class", "btn-containers custom-control custom-switch bundle-toggle")
+    d3.select("#buttons")
+        .append("div")
+        .attr("class", "bundle-slider")
     
     d3.select(".bundle-toggle")
         .append("input")
@@ -188,12 +196,32 @@ function buildControls(data) {
 
     d3.selectAll(".bundle-toggle")
         .append("label")
-        .text("Line bundling")
+        .text("Enabled")
         .attr("for", "bundleToggle")
         .attr("class", "custom-control-label")
 
+    d3.select(".bundle-slider")
+        .append("input")
+        .attr("type", "range")
+        .attr("min", 1)
+        .attr("id", "bundleSlider")
+        .attr("max", 5)
+        .attr("value", nonBundledPortion)
+        .attr("class", "form-range")
+        .on("change", function(d)  {
+            nonBundledPortion = this.value;
+            removePcp();
+            drawPcp(data);
+        })
+
+    d3.selectAll(".bundle-slider")
+        .append("label")
+        .text("Non-bundled portion")
+        .attr("for", "bundleSlider")
+        .attr("class", "form-label")
+
     // Build selection toggles for dimensions
-        d3.selectAll("#buttons")
+    d3.selectAll("#buttons")
         .append("text")
         .text("Dimensions")
         .style("font-weight", "bold")
