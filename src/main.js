@@ -1,7 +1,7 @@
 // Try to create bezzier from scratch acording to control points in paper
-var margin = {top: 30, right: 0, bottom: 30, left: 0},
-    width = 1000 - margin.left - margin.right,
-    height = 700 - margin.top - margin.bottom;
+var margin = {top: 30, right: 0, bottom: 30, left: 30},
+    width = window.innerWidth/2.15 - 100 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
 var dataStore = {}
 var displayDims = []
@@ -13,39 +13,115 @@ var filtered = []
 var pcp = null;
 var dragging = {}
 var axisGroup = []
+var brushes = ["Label", "Social drinker", "Social smoker"]
 // Fraction of distance between axis reserved for non bundled lines
 var nonBundledPortion = 4
 var bundlingEnabled = true;
+var groups = {}
+var currentBrush = "Label"
 
+// Load for parallel coordinates
 d3.csv("data/test2.csv").then( function(data) {
-        setupBrush();
-        buildPCP(data);
-        buildControls(data);
+        // Setup groups for brushing
+        let getMembers = (key) => [...new Set(data.map(d => d[key]))].sort();
+        groups = {
+            "Label" : getMembers("Label"),
+            "Social drinker" : getMembers("Social drinker"),
+            "Social smoker" : getMembers("Social smoker")
+        }
 
-          
+         // Main store of dimentions that doesnt get changed
+        dims = Object.keys(data[0]).filter(function(d) {
+            return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
         });
 
-function setupBrush(data) {
-    // Setup colours
-    brush.domain([0, 1, 2]);
-    brush.range(['red','green', 'blue'])
-    
-}
+        // Dimensions that are shown
+        displayDims = Object.keys(data[0]).filter(function(d) {
+            return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
+        });
 
-function buildPCP(data) {
-     // Main store of dimentions that doesnt get changed
-     dims = Object.keys(data[0]).filter(function(d) {
-        return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
+        buildControls(data);
+        buildPCP(data);
+        
     });
 
-    displayDims = Object.keys(data[0]).filter(function(d) {
-        return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
-    });
+// Load for DR scatter
+d3.csv("data/reduced_clustured.csv")
+    .then(function(data) {
+        console.log(data)
+        var margin = {top: 10, right: 30, bottom: 40, left: 50},
+        width = window.innerWidth/2.7 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
 
-    // Setup main plot
-    pcp = d3.select("#test")
+        var xMax = d3.max(data, function(d) { return +d['F_1'];});
+        var xMin = d3.min(data, function(d) { return +d['F_1'];});
+        var yMin = d3.max(data, function(d) { return +d['F_2'];});
+        var yMax = d3.min(data, function(d) { return +d['F_2'];});
+
+        svg = d3.select("#scatter")
         .append("svg")
             .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+            .attr("transform",
+                "translate(" + (margin.left) + "," + (margin.top) + ")");
+
+            // Add X axis
+            var x = d3.scaleLinear()
+                .domain([xMin, xMax])
+                .range([ 0,  width]);
+            svg.append("g")
+                .attr("class", "xAxis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x));
+
+            // Add Y axis
+            var y = d3.scaleLinear()
+                .domain([yMin, yMax])
+                .range([0, height]);
+            svg.append("g")
+                .attr("class", "yAxis")
+                .call(d3.axisLeft(y));
+
+            // Add points
+            svg.append('g')
+            .selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+                .attr("cx", function (d) { console.log(d['F_1']); return x(d['F_1']); } )
+                .attr("cy", function (d) { return y(d['F_2']); } )
+                .attr("r", 3)
+                .style("fill", function(d){
+                    ;return brush(d[currentBrush])
+                })    
+
+
+            // Add axis labels
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .attr("class", "y label")
+                .text("F2");
+
+            svg.append("text")
+                .attr("transform",
+                        "translate(" + (width/2) + " ," + 
+                        (height + margin.bottom) + ")")
+                .attr("class", "x label")
+                .attr("text-anchor", "middle")
+                .text("F1");
+
+
+    });
+function buildPCP(data) {
+    // Setupmain plot
+    pcp = d3.select("#pcp")
+        .append("svg")
+            .attr("width", window.innerWidth)
             .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .style("viewBox", "0 0 100 100")
@@ -80,8 +156,8 @@ function drawPcp(data) {
            .attr("d", path)
            .style("fill", "none")
            .style("opacity", 0.5)
-           .style("stroke", function(datum, index){
-               return brush(datum['Label'])
+           .style("stroke", function(d){
+               return brush(d[currentBrush])
            });
 
            
@@ -168,6 +244,25 @@ function drawPcp(data) {
 }
 
 function buildControls(data) {
+    // Build legend dropdown
+    d3.selectAll("#brushSelect")
+        .selectAll("myOptions")
+        .data(Object.keys(groups))
+        .enter()
+        .append("option")
+        .text(function (d) { return d; })
+        .attr("value", function (d) { return d; })
+    d3.selectAll("#brushSelect") .on("input", function(d) {
+        // Change to selected group and redraw
+        removeLegend();
+        currentBrush = d3.select(this).property("value")
+        buildLegend(data);
+        removePcp();
+        drawPcp(data);
+    })
+    buildLegend(data);
+    
+    // Line bundling options
     d3.selectAll("#buttons")
         .append("text")
         .text("Line bundling")
@@ -200,11 +295,13 @@ function buildControls(data) {
         .text("Enabled")
         .attr("for", "bundleToggle")
         .attr("class", "custom-control-label")
-        d3.selectAll(".bundle-slider")
+    
+    d3.selectAll(".bundle-slider")
         .append("label")
         .text("Non-bundled portion")
         .attr("for", "bundleSlider")
         .attr("class", "form-label")
+
     d3.select(".bundle-slider")
         .append("input")
         .attr("type", "range")
@@ -226,7 +323,6 @@ function buildControls(data) {
         .append("text")
         .text("Dimensions")
         .style("font-weight", "bold")
-    
     d3.select("#buttons").selectAll("myAxis")
         .data(displayDims)
         .enter()
@@ -236,7 +332,6 @@ function buildControls(data) {
     d3.selectAll(".dims-toggle")
         .append("input")
         .attr("class", "custom-control-input")
-        .attr("id", function(dim) { return dim })
         .attr("type", "checkbox")
         .attr("role", "switch")
         .attr("checked", true)
@@ -272,10 +367,60 @@ function buildControls(data) {
         // Remove previous plot
         removePcp(data);
         drawPcp(data);
+    }
+}
+
+function removeLegend() {
+    d3.selectAll("#legend").selectAll("svg").remove();
+}
+
+function buildLegend(data) {
+    var members = groups[currentBrush];
+    brush.domain(members);
+    brush.range(["red", "green", "blue"]);
+
+    legend = d3.select("#legend").append("svg")
+
+
+    legend.selectAll("mylabels")
+        .data(members)
+        .enter()
+        .append("text")
+            .attr("x", 150)
+            .attr("y", function(d,i){ return 20 + i*(3+20)})
+            .style("fill", function(d){ return brush(d)})
+            .text(function(d){ return d})
+            .attr("text-anchor", "right")
+            .style("alignment-baseline", "middle")
+        .on("click", selection);
+
+    legend.selectAll("mydots")
+        .data(members)
+        .enter()
+        .append("g")
+        .append("rect")
+            .attr("x", 125)
+            .attr("y", function(d,i){ return 10 + i*(3+20)})
+            .attr("width", "20")
+            .attr("height", "20")
+            .style("fill", function(d){ console.log("points");return brush(d)})
+        .on("click", selection);
+
+    // Apply brush on click
+    function selection(elem) {
+        // Check if already selected
+        var selected_pcp = d3.select("#pcp").select('svg').select('g').selectAll('path').select(
+            function(d) {
+                if (d == null) {
+                    return null
+                } else {
+                    return d['Label']==elem?this:null;
+                };}
+        ).style("opacity", 0.5);
 }
 }
 
-function removePcp(data) {
+function removePcp() {
     pcpX.domain(displayDims)
     pcp.selectAll("g").remove();
     pcp.selectAll("path").remove();
@@ -290,7 +435,3 @@ function position(d) {
     this.splice(to,0,this.splice(from,1)[0]);
     return this;
   }
-
-function toggleBundling() {
-    
-}
