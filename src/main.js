@@ -19,6 +19,8 @@ var nonBundledPortion = 4
 var bundlingEnabled = true;
 var groups = {}
 var currentBrush = "Label"
+var paths = null;
+currentSelection = "";
 
 // Load for parallel coordinates
 d3.csv("data/test2.csv").then( function(data) {
@@ -148,8 +150,7 @@ function drawPcp(data) {
     }
 
     // Plot paths
-   pcp.selectAll("myPath")
-           .data(data)
+   paths = pcp.selectAll("myPath").data(data)
            .enter()
            .append("path")
            //.attr("class", function(d) { return d['Label']; })
@@ -172,7 +173,7 @@ function drawPcp(data) {
     })
     .on("drag", function(event, d) {
         console.log(event)
-        d3.select(this).attr("transform", "translate(" + event.sourceEvent.pageX+ ")");
+        d3.select(this).attr("transform", "translate(" + event.x + ")");
     })
     .on("end", function(event, d) {
         let axisPos = width/displayDims.length;
@@ -379,16 +380,15 @@ function buildLegend(data) {
     brush.domain(members);
     brush.range(["red", "green", "blue"]);
 
-    legend = d3.select("#legend").append("svg")
+    legend = d3.select("#legend").append("svg").attr("width", 150).style("float", "right")
 
 
     legend.selectAll("mylabels")
         .data(members)
         .enter()
         .append("text")
-            .attr("x", 150)
-            .attr("y", function(d,i){ return 20 + i*(3+20)})
-            .style("fill", function(d){ return brush(d)})
+            .attr("x", 75)
+            .attr("y", function(d,i){ return 15 + i*(3+20)})
             .text(function(d){ return d})
             .attr("text-anchor", "right")
             .style("alignment-baseline", "middle")
@@ -399,24 +399,75 @@ function buildLegend(data) {
         .enter()
         .append("g")
         .append("rect")
-            .attr("x", 125)
-            .attr("y", function(d,i){ return 10 + i*(3+20)})
+            .attr("x", 50)
+            .attr("y", function(d,i){ return 5 + i*(3+20)})
             .attr("width", "20")
             .attr("height", "20")
-            .style("fill", function(d){ console.log("points");return brush(d)})
+            .style("fill", function(d) { return brush(d)})
         .on("click", selection);
 
+        d3.selection.prototype.moveToFront = function(d) {
+            console.log("moving")
+            console.log(d)
+            this.each(function(d){
+                console.log(d, "asdf");
+              this.parentNode.appendChild(this);
+            });
+          };
+
+          d3.selection.prototype.moveToBack = function() {
+            return this.each(function() {
+                var firstChild = this.parentNode.firstChild;
+                if (firstChild) {
+                    this.parentNode.insertBefore(this, firstChild);
+                }
+            });
+        };
+
     // Apply brush on click
-    function selection(elem) {
-        // Check if already selected
-        var selected_pcp = d3.select("#pcp").select('svg').select('g').selectAll('path').select(
-            function(d) {
-                if (d == null) {
-                    return null
-                } else {
-                    return d['Label']==elem?this:null;
-                };}
-        ).style("opacity", 0.5);
+    function selection(elem, value) {
+        console.log(currentSelection)
+        // Toggle focus
+        if (currentSelection == value) {
+            currentSelection = "";
+            // Send back
+            paths.each(function(d) { 
+                var firstChild = this.parentNode.firstChild;
+                if (firstChild) {
+                    this.parentNode.insertBefore(this, firstChild);
+                }
+                
+            })
+
+            paths.style("stroke-width", 1)
+            paths.style("opacity", 0.5)
+            d3.select("#scatter").selectAll("circle").style("opacity", 1)
+            
+        } else {
+            currentSelection = value
+
+            // Bring to front
+            paths.each(function(d) { 
+                if (d[currentBrush] == value) {
+                    this.parentNode.appendChild(this);
+                }
+                
+            })
+    
+            paths.style("opacity", function(d) {
+                return d[currentBrush] == value ? 1 : 0.1
+            })
+
+            d3.select("#scatter").selectAll("circle").style("opacity", function(d) {
+                return d[currentBrush] == value ? 1 : 0.2
+            })
+
+        }
+        
+
+       
+
+       
 }
 }
 
