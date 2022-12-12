@@ -1,6 +1,6 @@
 // Try to create bezzier from scratch acording to control points in paper
 var margin = {top: 30, right: 0, bottom: 30, left: 30},
-    width = window.innerWidth/2.15 - 100 - margin.left - margin.right,
+    width = window.innerWidth/2 - 100 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 var dataStore = {}
@@ -18,107 +18,107 @@ var brushes = ["Label", "Social drinker", "Social smoker"]
 var nonBundledPortion = 4
 var bundlingEnabled = true;
 var groups = {}
-var currentBrush = "Label"
+var currentBrush = "Cluster"
 var paths = null;
-currentSelection = "";
+var currentSelection = "";
 
 // Load for parallel coordinates
-d3.csv("data/test2.csv").then( function(data) {
+d3.csv("data/final.csv").get( function(data) {
         // Setup groups for brushing
         let getMembers = (key) => [...new Set(data.map(d => d[key]))].sort();
         groups = {
-            "Label" : getMembers("Label"),
+            "Cluster" : getMembers("Cluster"),
             "Social drinker" : getMembers("Social drinker"),
             "Social smoker" : getMembers("Social smoker")
         }
 
          // Main store of dimentions that doesnt get changed
         dims = Object.keys(data[0]).filter(function(d) {
-            return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
+            return (d == "Age" ||
+                d == "Body mass index" ||
+                d == "Work load Average/day " ||
+                d == "Absenteeism time in hours"
+                ) ?  d : null
         });
 
         // Dimensions that are shown
-        displayDims = Object.keys(data[0]).filter(function(d) {
-            return (d == "Label" || d.endsWith("_m") || d.endsWith("_m2") || d == "Social smoker" || d=="Social drinker" ) ?  null : d
-        });
+        displayDims = dims
 
         buildControls(data);
         buildPCP(data);
+        buildDists(data);
+        buildScatter(data);
         
     });
 
 // Load for DR scatter
-d3.csv("data/reduced_clustured.csv")
-    .then(function(data) {
-        console.log(data)
-        var margin = {top: 10, right: 30, bottom: 40, left: 50},
-        width = window.innerWidth/2.7 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+function buildScatter(data){
+    var margin = {top: 10, right: 30, bottom: 30, left: 50},
+    width = window.innerWidth/3 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
-        var xMax = d3.max(data, function(d) { return +d['F_1'];});
-        var xMin = d3.min(data, function(d) { return +d['F_1'];});
-        var yMin = d3.max(data, function(d) { return +d['F_2'];});
-        var yMax = d3.min(data, function(d) { return +d['F_2'];});
+    var xMax = d3.max(data, function(d) { return +d['Component 0'];});
+    var xMin = d3.min(data, function(d) { return +d['Component 0'];});
+    var yMin = d3.max(data, function(d) { return +d['Component 1'];});
+    var yMax = d3.min(data, function(d) { return +d['Component 1'];});
 
-        svg = d3.select("#scatter")
-        .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-        .append("g")
+    svg = d3.select("#scatter")
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform",
+            "translate(" + (margin.left) + "," + (margin.top-3) + ")");
+
+        // Add X axis
+        var x = d3.scaleLinear()
+            .domain([xMin, xMax])
+            .range([ 0,  width]);
+        svg.append("g")
+            .attr("class", "xAxis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+        // Add Y axis
+        var y = d3.scaleLinear()
+            .domain([yMin, yMax])
+            .range([0, height]);
+        svg.append("g")
+            .attr("class", "yAxis")
+            .call(d3.axisLeft(y));
+
+
+        // Add points
+        svg.append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+            .attr("cx", function (d) {console.log("here");return x(d['Component 0']); } )
+            .attr("cy", function (d) { return y(d['Component 1']); } )
+            .attr("r", 3)
+            .style("fill", function(d){return brush(d[currentBrush])})    
+
+
+        // Add axis labels
+        svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x", 0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .attr("class", "y label")
+            .text("Component 1");
+
+        svg.append("text")
             .attr("transform",
-                "translate(" + (margin.left) + "," + (margin.top) + ")");
+                    "translate(" + (width/2) + " ," + 
+                    (height + margin.bottom) + ")")
+            .attr("class", "x label")
+            .attr("text-anchor", "middle")
+            .text("Component 0");
+}
 
-            // Add X axis
-            var x = d3.scaleLinear()
-                .domain([xMin, xMax])
-                .range([ 0,  width]);
-            svg.append("g")
-                .attr("class", "xAxis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(d3.axisBottom(x));
-
-            // Add Y axis
-            var y = d3.scaleLinear()
-                .domain([yMin, yMax])
-                .range([0, height]);
-            svg.append("g")
-                .attr("class", "yAxis")
-                .call(d3.axisLeft(y));
-
-            // Add points
-            svg.append('g')
-            .selectAll("dot")
-            .data(data)
-            .enter()
-            .append("circle")
-                .attr("cx", function (d) { console.log(d['F_1']); return x(d['F_1']); } )
-                .attr("cy", function (d) { return y(d['F_2']); } )
-                .attr("r", 3)
-                .style("fill", function(d){
-                    ;return brush(d[currentBrush])
-                })    
-
-
-            // Add axis labels
-            svg.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin.left)
-                .attr("x", 0 - (height / 2))
-                .attr("dy", "1em")
-                .style("text-anchor", "middle")
-                .attr("class", "y label")
-                .text("F2");
-
-            svg.append("text")
-                .attr("transform",
-                        "translate(" + (width/2) + " ," + 
-                        (height + margin.bottom) + ")")
-                .attr("class", "x label")
-                .attr("text-anchor", "middle")
-                .text("F1");
-
-
-    });
 function buildPCP(data) {
     // Setupmain plot
     pcp = d3.select("#pcp")
@@ -126,7 +126,6 @@ function buildPCP(data) {
             .attr("width", window.innerWidth)
             .attr("height", height + margin.top + margin.bottom)
         .append("g")
-        .style("viewBox", "0 0 100 100")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
@@ -150,6 +149,7 @@ function drawPcp(data) {
     }
 
     // Plot paths
+    console.log(data)
    paths = pcp.selectAll("myPath").data(data)
            .enter()
            .append("path")
@@ -207,9 +207,9 @@ function drawPcp(data) {
 }
 
  // Implementation based on: https://ieeexplore.ieee.org/document/8107953
- function path(d, row) {
+ function path(d) {
     if (!bundlingEnabled) {
-    return d3.line()(displayDims.map(function(p) { return [pcpX(p), pcpY[p](d[p])]; }));
+        return d3.line()(displayDims.map(function(p) { return [pcpX(p), pcpY[p](d[p])]; }));
     }
     let ctrPts = [];
 
@@ -230,6 +230,7 @@ function drawPcp(data) {
         // Actual value and mean of cluster
         ctrPts.push([pcpX(displayDims[i]), pcpY[displayDims[i]](d[displayDims[i]])])
         ctrPts.push([pcpX(displayDims[i]), pcpY[displayDims[i]](d[displayDims[i]+"_m"])])
+        //console.log(d)
 
         // Mean of cluster after axis moved a portion of the x scale
         if (i != displayDims.length - 1) {
@@ -238,7 +239,7 @@ function drawPcp(data) {
                 pcpY[displayDims[i]](d[displayDims[i]+"_m"])])
             }    
     }
-
+    //console.log(ctrPts)
     // Create bezzier for this row 
     return d3.line().curve(d3.curveBasis)(ctrPts); 
     
@@ -246,36 +247,34 @@ function drawPcp(data) {
 
 function buildControls(data) {
     // Build legend dropdown
-    d3.selectAll("#brushSelect")
+    d3.select("#brushSelect")
         .selectAll("myOptions")
         .data(Object.keys(groups))
         .enter()
         .append("option")
         .text(function (d) { return d; })
         .attr("value", function (d) { return d; })
-    d3.selectAll("#brushSelect") .on("input", function(d) {
+    
+    d3.select("#brushSelect") .on("input", function(d) {
         // Change to selected group and redraw
-        removeLegend();
+        removeLegend()
         currentBrush = d3.select(this).property("value")
-        buildLegend(data);
-        removePcp();
-        drawPcp(data);
+        buildLegend(data)
+        removePcp()
+        drawPcp(data)
     })
-    buildLegend(data);
+    buildLegend(data)
     
     // Line bundling options
-    d3.selectAll("#buttons")
+    d3.select("#buttons")
         .append("text")
         .text("Line bundling")
         .style("font-weight", "bold")
     
+    // Add toggle
     d3.select("#buttons")
         .append("div")
         .attr("class", "custom-control custom-switch bundle-toggle")
-    
-    d3.select("#buttons")
-        .append("div")
-        .attr("class", "bundle-slider")
     
     d3.select(".bundle-toggle")
         .append("input")
@@ -289,13 +288,18 @@ function buildControls(data) {
             removePcp();
             drawPcp(data);
 
-        });
+        })
 
     d3.selectAll(".bundle-toggle")
         .append("label")
         .text("Enabled")
         .attr("for", "bundleToggle")
         .attr("class", "custom-control-label")
+
+    // Add slider
+    d3.select("#buttons")
+        .append("div")
+        .attr("class", "bundle-slider")
     
     d3.selectAll(".bundle-slider")
         .append("label")
@@ -317,15 +321,14 @@ function buildControls(data) {
             drawPcp(data);
         })
 
-    
-
-    // Build selection toggles for dimensions
+    // Dimensions toggles
     d3.selectAll("#buttons")
         .append("text")
         .text("Dimensions")
         .style("font-weight", "bold")
+
     d3.select("#buttons").selectAll("myAxis")
-        .data(displayDims)
+        .data(dims)
         .enter()
         .append("div")
         .attr("class", "custom-control custom-switch dims-toggle")
@@ -333,10 +336,11 @@ function buildControls(data) {
     d3.selectAll(".dims-toggle")
         .append("input")
         .attr("class", "custom-control-input")
+        .attr("id", function(d) { return d })
         .attr("type", "checkbox")
         .attr("role", "switch")
         .attr("checked", true)
-        .on("click",d => filterDimensions(d.path[0].id));
+        .on("click", d => filterDimensions(d));
 
     d3.selectAll(".dims-toggle")
         .append("label")
@@ -348,7 +352,8 @@ function buildControls(data) {
 
 
     // Replots with updated dimensions
-    function filterDimensions(dim) {  
+    function filterDimensions(dim) {
+        console.log(dim)
         displayDims = dims;
 
         // Update displayed dims
@@ -359,11 +364,14 @@ function buildControls(data) {
         } else {
             filtered.push(dim);
         }
+
+        console.log(filtered)
         filtered.forEach(dim1 => {
             displayDims = displayDims.filter(function(dim2) {
                 return dim2 !== dim1;
             })
         })
+        console.log(displayDims)
 
         // Remove previous plot
         removePcp(data);
@@ -371,14 +379,15 @@ function buildControls(data) {
     }
 }
 
+
 function removeLegend() {
     d3.selectAll("#legend").selectAll("svg").remove();
 }
 
 function buildLegend(data) {
     var members = groups[currentBrush];
-    brush.domain(members);
-    brush.range(["red", "green", "blue"]);
+    console.log(members);
+    brush.domain(members).range(d3.schemePaired);
 
     legend = d3.select("#legend").append("svg").attr("width", 150).style("float", "right")
 
@@ -461,14 +470,8 @@ function buildLegend(data) {
             d3.select("#scatter").selectAll("circle").style("opacity", function(d) {
                 return d[currentBrush] == value ? 1 : 0.2
             })
-
         }
-        
-
-       
-
-       
-}
+    }
 }
 
 function removePcp() {
@@ -477,12 +480,8 @@ function removePcp() {
     pcp.selectAll("path").remove();
 }
 
-function position(d) {
-    var v = dragging[d];
-    return v == null ? pcpX(d) : v;
-  }
-
-  Array.prototype.move = function(from,to){
+// Helper to swap array indeces
+Array.prototype.move = function(from,to){
     this.splice(to,0,this.splice(from,1)[0]);
     return this;
-  }
+}
