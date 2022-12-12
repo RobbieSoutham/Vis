@@ -1,7 +1,7 @@
 // Try to create bezzier from scratch acording to control points in paper
 var margin = {top: 30, right: 0, bottom: 30, left: 30},
     width = window.innerWidth/2 - 100 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    height = innerHeight/2.3 - margin.top - margin.bottom;
 
 var dataStore = {}
 var displayDims = []
@@ -11,11 +11,7 @@ var pcpX = d3.scalePoint()
 var pcpY = {}
 var filtered = []
 var pcp = null;
-var dragging = {}
-var axisGroup = []
-var brushes = ["Label", "Social drinker", "Social smoker"]
-// Fraction of distance between axis reserved for non bundled lines
-var nonBundledPortion = 4
+var nonBundledPortion = 4 // Fraction of distance between axis reserved for non bundled lines
 var bundlingEnabled = true;
 var groups = {}
 var currentBrush = "Cluster"
@@ -383,7 +379,7 @@ function removeLegend() {
 function buildLegend(data) {
     var members = groups[currentBrush];
     console.log(members);
-    brush.domain(members).range(d3.schemePaired);
+    brush.domain(members).range(d3.schemeSet1);
 
     legend = d3.select("#legend").append("svg").attr("width", 150).style("float", "right")
 
@@ -447,7 +443,9 @@ function buildLegend(data) {
             paths.style("stroke-width", 1)
             paths.style("opacity", 0.5)
             d3.select("#scatter").selectAll("circle").style("opacity", 1)
-            
+            d3.select("#dist1").selectAll("circle").style("opacity", 1)
+            d3.select("#dist2").selectAll("circle").style("opacity", 1)
+
         } else {
             currentSelection = value
 
@@ -466,10 +464,18 @@ function buildLegend(data) {
             d3.select("#scatter").selectAll("circle").style("opacity", function(d) {
                 return d[currentBrush] == value ? 1 : 0.2
             })
+
+            d3.select("#dist1").selectAll("circle").style("opacity", function(d) {
+                return d[currentBrush] == value ? 1 : 0.2
+            })
+            d3.select("#dist2").selectAll("circle").style("opacity", function(d) {
+                return d[currentBrush] == value ? 1 : 0.2
+            })
         }
     }
 }
 
+// Removes the PCP plot
 function removePcp() {
     pcpX.domain(displayDims)
     pcp.selectAll("g").remove();
