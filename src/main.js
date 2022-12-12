@@ -167,13 +167,10 @@ function drawPcp(data) {
     .append("g")
     .call(d3.drag()
     .on("start", function(event, d) {
-      dragging[d] = this.__origin__ = pcpX(d);
-      event.subject.active = true;
       d3.select(this).style("opacity", "0.35");
     })
     .on("drag", function(event, d) {
-        console.log(event)
-        d3.select(this).attr("transform", "translate(" + event.x + ")");
+        d3.select(this).attr("transform", "translate(" + d3.event.x + ")");
     })
     .on("end", function(event, d) {
         let axisPos = width/displayDims.length;
@@ -199,9 +196,8 @@ function drawPcp(data) {
     .style("text-anchor", "middle")
     .text(function(d) { return d; })
     .style("fill", "black")
-    .attr("y", "-15").on("mouseover", function(event, d) {
-        console.log("hover");
-        d3.select(event.currentTarget)
+    .attr("y", "-15").on("mouseover", function (d) {
+        d3.select(this)
             .style("cursor", "move")
     })
 }

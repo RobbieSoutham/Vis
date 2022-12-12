@@ -65,12 +65,15 @@ function buildDists(data) {
 
 
     // Add the shape to this svg!
+    let mapGroup = (val) =>  val == "Yes" ? "Social smoker" : "Non smoker"
     svg
     .selectAll("myViolin")
     .data(sumstat)
     .enter()        // So now we are working group per group
     .append("g")
-        .attr("transform", function(d){ return("translate(" + x(d.key) +" ,0)") } ) // Translation on the right to be at the group position
+        .attr("transform", function(d){ console.log();return("translate(" + (
+            x(mapGroup(d.key))
+            ) +" ,0)") } ) // Translation on the right to be at the group position
     .append("path")
         .datum(function(d){ return(d.value)})     // So now we are working bin per bin
         .style("stroke", "none")
@@ -79,19 +82,19 @@ function buildDists(data) {
             .x0( xNum(0) )
             .x1(function(d){ return(xNum(d.length)) } )
             .y(function(d){ return(y(d.x0)) } )
-            .curve(d3.curveCatmullRom)    // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
+            //.curve(d3.curveCatmullRom)    // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
         )
 
     // Add individual points with jitter
-    var jitterWidth = 40
+    var jitterWidth = 70
     svg
     .selectAll("indPoints")
     .data(data)
     .enter()
     .append("circle")
-        .attr("cx", function(d){return(x(d['Social smoker']) + x.bandwidth()/2 - Math.random()*jitterWidth )})
+        .attr("cx", function(d){return(x(mapGroup(d['Social smoker'])) + x.bandwidth()/2 - Math.random()*jitterWidth )})
         .attr("cy", function(d){return(y(d['counts']))})
-        .attr("r", 5)
+        .attr("r", 3)
         .style("fill", function(d){ return(brush(d[currentBrush]))})
         .attr("stroke", "white")
 
