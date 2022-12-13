@@ -21,6 +21,15 @@
   overflow: hidden;
   justify-content: space-evenly;
   align-items: center;
+
+}
+
+#firstRow {
+  margin-top:1%;
+}
+
+#secondRow {
+  margin-top:2%;
 }
 
 #scatter {
