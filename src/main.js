@@ -184,9 +184,22 @@ function drawPcp(data) {
         removePcp();
         drawPcp(data);
 
+        // Check if selection has been previosly made
+        if (currentSelection !== "") {
+            // Bring to front
+            paths.each(function(d) { 
+                if (d[currentBrush] == currentSelection) {
+                    
+                    this.parentNode.appendChild(this);
+                }
+                
+            })
 
-    })  
-    )
+            paths.style("opacity", function(d) {
+                return d[currentBrush] == currentSelection ? 1 : 0.1
+            })
+        }
+    }))
     .attr("transform", function(d) { return "translate(" + pcpX(d) + ")"; })
     .each(function(d) {
         d3.select(this).call(d3.axisLeft().scale(pcpY[d]));
