@@ -86,7 +86,7 @@ function buildPlot(svg, groups, variable, data) {
 
        // Add the shape to this svg!
        let mapGroup = (val) =>  val == "Yes" ? group: "Non-".concat(group)
-       svg
+       var violin = svg
        .selectAll("myViolin")
        .data(sumstat)
        .enter()        // So now we are working group per group
@@ -110,53 +110,82 @@ function buildPlot(svg, groups, variable, data) {
        var maxJitterWidth = 40;
        var positions = []
        var found = []
+
+       var countMax = 0
+       data.forEach(function(d) {
+        let count = data.filter(function(d2) {
+            return d[variable] == d2[variable] && d[group] == d2[group]
+            }).length
+
+        if (count > countMax) {
+            countMax = count
+        }
+
+       })
+       data.forEach((d) => {
+           g = d[group] == "Yes" ? 0 : 1
+           console.log(sumstat[g][3], 0)
+       })
+
+
        svg
        .selectAll("indPoints")
        .data(data)
        .enter()
        .append("circle")
        .attr("cx", function(d){
-           var maxIt = 40/3
-           var currentWidth = jitterWidth
-
+           let maxIt = 40/3
+           let currentWidth = jitterWidth
+           let counts = (data.filter(function(d2) {
+            return d[variable] == d2[variable] && d[group] == d2[group]
+            }).length)
+           currentWidth = (counts/countMax) * x.bandwidth()/2
+        
            // Loop until max overlap or max iterations reached
-           for (let i = 0; i < maxIt; i++){
-                // Increment width by one for every entry with the same y value unless max width reached
-                for (let j = 0; j < found.length; j++) {
-                    if (currentWidth == maxJitterWidth) {break}
-                   
-                    if (found[j][variable] == d[variable] && found[j][group] == d[group]) {
-                        currentWidth++
-                        
-                    }
-                }
-                
-                // Randomly decide to place on left or right
-                if (Math.random() > 0.5) {
-                    pos = x(mapGroup(d[group])) + x.bandwidth()/2 - Math.random()*currentWidth
+           if (counts >= maxIt) {
+               // Randomly decide to place on left or right
+               if (Math.random() > 0.5) {
+                pos = x(mapGroup(d[group])) + x.bandwidth()/2 - Math.random()*currentWidth
                 } else {
                     pos = x(mapGroup(d[group])) + x.bandwidth()/2 + Math.random()*currentWidth
                 }
-                
+           }else {
+               for (let i = 0; i < maxIt; i++){
+                //Increment width by one for every entry with the same y value unless max width reached
 
-                // Check if overlap
-                let overlap = true
-                positions.forEach((x) => {
-                    if (Math.abs(x-pos) > 3) {
-                        overlap = false
+                    // Randomly decide to place on left or right
+                    if (Math.random() > 0.5) {
+                        pos = x(mapGroup(d[group])) + x.bandwidth()/2 - Math.random()*currentWidth
+                    } else {
+                        pos = x(mapGroup(d[group])) + x.bandwidth()/2 + Math.random()*currentWidth
                     }
-                
-                })
+                    
 
-                if (overlap) { break }
-            
+                    // Check if overlap
+                    let overlap = true
+                    positions.forEach((x) => {
+                        if (Math.abs(x-pos) > 3) {
+                            overlap = false
+                        }
+                    
+                    })
+
+                    if (overlap) { break }
+                
+                }
             }
            positions.push(pos)
            found.push(d)
          return pos
             
         })
-        .attr("cy", function(d){return(y(d[variable]))})
+        .attr("cy", function(d){
+            if (Math.random() > 0.5) {
+                return y(d[variable]) + Math.random() * 3
+            } else {
+                return y(d[variable]) - Math.random() * 3
+            }
+           })
         .attr("r", 3)
         .style("fill", function(d){ return(brush(d[currentBrush]))})
         .attr("stroke", "white")
