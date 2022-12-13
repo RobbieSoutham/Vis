@@ -1,21 +1,20 @@
-var margin = {top: 50, right: window.innerWidth/1.9/13, bottom: 5, left:  window.innerWidth/1.9/20},
-    width = window.innerWidth/1.9 - 100 - margin.left - margin.right,
-    height = innerHeight/2.3 - margin.top - margin.bottom;
-
-var dataStore = {}
-var displayDims = []
-var brush = d3.scaleOrdinal()
-var dims
-var pcpX = d3.scalePoint()
-var pcpY = {}
-var filtered = []
-var pcp = null;
-var nonBundledPortion = 4 // Fraction of distance between axis reserved for non bundled lines
-var bundlingEnabled = true;
-var groups = {}
-var currentBrush = "Cluster"
-var paths = null;
-var currentSelection = "";
+var margin = {top: 50, right: 150, bottom: 5, left:  75},
+width = window.innerWidth/1.9 - margin.left - margin.right,
+height = innerHeight/2.3 - margin.top - margin.bottom
+dataStore = {},
+displayDims = [],
+brush = d3.scaleOrdinal(),
+dims = [],
+pcpX = d3.scalePoint(),
+pcpY = {},
+filtered = [],
+pcp = null;
+nonBundledPortion = 4, // Fraction of distance between axis reserved for non bundled lines
+bundlingEnabled = true,
+groups = {},
+currentBrush = "Cluster",
+paths = null,
+ currentSelection = "",
 
 // Load for parallel coordinates
 d3.csv("data/final.csv").get( function(data) {
@@ -51,12 +50,13 @@ d3.csv("data/final.csv").get( function(data) {
         } );
     });
 
-// Load for DR scatter
+// Build the scatter plot for components of FA
 function buildScatter(data){
-    var margin = {top: 50, right: 5, bottom: 30, left: 50},
-    width = window.innerWidth/3.5 - margin.left - margin.right,
+    var margin = {top: 50, right: 50, bottom: 30, left: 50},
+    width = window.innerWidth/3 - margin.left - margin.right,
     height = window.innerHeight/2.3 - margin.top - margin.bottom;
 
+    // Get max and min of X and Y to form axis domains
     var xMax = d3.max(data, function(d) { return +d['Component 0'];});
     var xMin = d3.min(data, function(d) { return +d['Component 0'];});
     var yMin = d3.max(data, function(d) { return +d['Component 1'];});
@@ -388,15 +388,15 @@ function buildLegend(data) {
     console.log(members);
     brush.domain(members).range(d3.schemeSet1);
 
-    legend = d3.select("#legend").append("svg").attr("width", 150).style("float", "right")
+    legend = d3.select("#legend").append("svg").attr("width", 200).attr("height", 50).style("float", "right")
 
 
     legend.selectAll("mylabels")
         .data(members)
         .enter()
         .append("text")
-            .attr("x", 75)
-            .attr("y", function(d,i){ return 20 + i*(3+20)})
+            .attr("x", function(d,i){ return 60 + i*(3+20)})
+            .attr("y", 45)
             .text(function(d){ return d})
             .attr("text-anchor", "right")
             .attr("class", "h6")
@@ -408,8 +408,8 @@ function buildLegend(data) {
         .enter()
         .append("g")
         .append("rect")
-            .attr("x", 50)
-            .attr("y", function(d,i){ return 10 + i*(3+20)})
+            .attr("x", function(d,i){ return 55 + i*(3+20)})
+            .attr("y", 10)
             .attr("width", "20")
             .attr("height", "20")
             .style("fill", function(d) { return brush(d)})

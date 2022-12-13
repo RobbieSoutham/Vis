@@ -15,7 +15,7 @@
 
 #firstRow, #secondRow {
   display: flex;
-  height: 50%;
+  height: 45%;
   align-items: center;
   width: 100%;
   overflow: hidden;
@@ -49,8 +49,9 @@
 #controls {
   background-color: lightgrey;
   border-radius: 5px;
-  display: flex;
+  display: block;
   flex-direction: column;
+  height: fit-content;
 }
 
 
@@ -71,7 +72,7 @@
 }
 
 html, body{min-height:100%;}
-body{height:100vh;}
+
 
 
 .custom-switch.custom-switch {
@@ -92,6 +93,10 @@ body{height:100vh;}
   display: flex;
   justify-content: space-between;
   padding-bottom: 20px;
+}
+
+#bundleSlider {
+  margin-left: 50px;
 }
 
 #dist1, #dist2 {
