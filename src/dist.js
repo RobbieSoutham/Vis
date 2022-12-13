@@ -1,5 +1,5 @@
 
-
+// Code based on various D3 gallery tutorials
 function buildDists(data) {
     // set the dimensions and margins of the graph
     var margin = {top: 10, right: 0, bottom: 60, left: 0},
@@ -22,18 +22,11 @@ function buildDists(data) {
        .attr("transform",
            "translate(" + (margin.left+50) + "," + margin.top + ")");
 
-    d3.csv("../data/final.csv", function(data) {
-        buildPlot(totalAbsences, ["Social smoker", "Social drinker"], "counts", data)
-        buildPlot(totalTime, ["Social smoker", "Social drinker"], "total absence time", data)
-   })
+    buildPlot(totalAbsences, ["Social smoker", "Social drinker"], "counts", data)
+    buildPlot(totalTime, ["Social smoker", "Social drinker"], "total absence time", data)
 }   
 
-/**
-* Creates a violin and jitter for each group values on the given object
-* @param {*} svg 
-* @param {*} groups 
-* @param {*} variable 
-*/
+// Creates a violin and jitter for each group values on the given object
 function buildPlot(svg, groups, variable, data) {
    var max = d3.max(data, function(d) { return +d[variable];});
    // Build and Show the Y scale
@@ -50,14 +43,10 @@ function buildPlot(svg, groups, variable, data) {
        });
 
        var histogram = d3.histogram()
-       .domain(y.domain())
-       .thresholds(y.ticks(20))
-       .value(d => d)
-       var x = d3.scaleBand()
-           .range([ 0, width ])
-           .domain(domain)
-           .padding(0.05)  
-       console.log(domain)
+           .domain(y.domain())
+           .thresholds(y.ticks(15))
+           .value(d => d)
+           
        groups.forEach(group => {
             
        var x = d3.scaleBand()
@@ -66,15 +55,11 @@ function buildPlot(svg, groups, variable, data) {
        .padding(0.05)
        svg.append("g")
        .attr("transform", "translate(0," + height + ")")
+       .attr("class", "h6 small")
        .call(d3.axisBottom(x))
 
-       // Features of the histogram
-       var histogram = d3.histogram()
-           .domain(y.domain())
-           .thresholds(y.ticks(12))
-           .value(d => d)
+       
 
-       console.log(data)
        // Compute the binning for each group of the dataset
        var sumstat = d3.nest()
         .key(function(d) { return d[group];})
@@ -88,7 +73,6 @@ function buildPlot(svg, groups, variable, data) {
        var maxNum = 0
        for ( i in sumstat ){
            if (i != "move") {
-               console.log(i)
                 allBins = sumstat[i].value
                 lengths = allBins.map(function(a){return a.length;})
                 longuest = d3.max(lengths)
@@ -122,20 +106,57 @@ function buildPlot(svg, groups, variable, data) {
            )
 
        // Add individual points with jitter
-       var jitterWidth = 70
+       var jitterWidth = 1
+       var maxJitterWidth = 40;
+       var positions = []
+       var found = []
        svg
        .selectAll("indPoints")
        .data(data)
        .enter()
        .append("circle")
        .attr("cx", function(d){
-           if (Math.random() > 0.5) {
-               return x(mapGroup(d[group])) + x.bandwidth()/2 - Math.random()*jitterWidth
-            } else {
-                return x(mapGroup(d[group])) + x.bandwidth()/2 + Math.random()*jitterWidth
+           var maxIt = 40/3
+           var currentWidth = jitterWidth
+
+           // Loop until max overlap or max iterations reached
+           for (let i = 0; i < maxIt; i++){
+                // Increment width by one for every entry with the same y value unless max width reached
+                for (let j = 0; j < found.length; j++) {
+                    if (currentWidth == maxJitterWidth) {break}
+                   
+                    if (found[j][variable] == d[variable] && found[j][group] == d[group]) {
+                        currentWidth++
+                        
+                    }
+                }
+                
+                // Randomly decide to place on left or right
+                if (Math.random() > 0.5) {
+                    pos = x(mapGroup(d[group])) + x.bandwidth()/2 - Math.random()*currentWidth
+                } else {
+                    pos = x(mapGroup(d[group])) + x.bandwidth()/2 + Math.random()*currentWidth
+                }
+                
+
+                // Check if overlap
+                let overlap = true
+                positions.forEach((x) => {
+                    if (Math.abs(x-pos) > 3) {
+                        overlap = false
+                    }
+                
+                })
+
+                if (overlap) { break }
+            
             }
+           positions.push(pos)
+           found.push(d)
+         return pos
+            
         })
-        .attr("cy", function(d){if(d[variable] > 100) {console.log("FOUND", group)}; return(y(d[variable]))})
+        .attr("cy", function(d){return(y(d[variable]))})
         .attr("r", 3)
         .style("fill", function(d){ return(brush(d[currentBrush]))})
         .attr("stroke", "white")
@@ -147,25 +168,19 @@ function buildPlot(svg, groups, variable, data) {
         .attr("x", 0 - (height / 2))
         .attr("dy", "1em")
         .style("text-anchor", "middle")
-        .attr("class", "y label")
+        .attr("class", "y-label, h6")
         .text(variable == "counts" ? "Total absences" : "Total absence time (h)");
+
+        delete found;
      
     })
 }
        
 
-
 function kernelDensityEstimator(kernel, X) {
    return function(V) {
      return X.map(function(x) {
-         if (x['Social smoker'] == "No") {
-             console.log("Non smoker at ",  [x, d3.mean(V, function(v) { return kernel(x - v); })])
-         }
        return [x, d3.mean(V, function(v) {
-
-           if (v['Social smoker'] == "No") {
-               console.log("Non smoker at ",  [x, d3.mean(V, function(v) { return kernel(x - v); })])
-           }
            return kernel(x - v); })];
      });
    };

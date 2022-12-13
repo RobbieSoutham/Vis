@@ -13,15 +13,18 @@
   display: inline-block;
 }
 
-#secondRow {
+#firstRow, #secondRow {
   display: flex;
   height: 50%;
   align-items: center;
+  width: 100%;
+  overflow: hidden;
 }
 
 #legend div {
   display: flex;
   padding: 15px;
+  padding-top: 10px;
   padding-bottom: 0px;
   align-items: flex-start;
   font-weight: bold;
@@ -42,12 +45,13 @@
   border-radius: 5px;
   width: 25%;
   min-width: 350px;
-  padding-top: 10px;
-  margin-right: 10%;
+  margin-top: 25px;
+  margin-right: 50px;
   height: 50%;
   display: flex;
   flex-direction: column;
 }
+
 
 .custom-switch.custom-switch {
   padding-left: 0px;
@@ -69,12 +73,14 @@
   padding-bottom: 20px;
 }
 
-#firstRow {
-  display: flex;
-  height: 50%;
-  width: 100%;
-}
-
 #dist1, #dist2 {
   width: 50%;
+}
+
+#legend svg g rect:hover {
+  stroke: black;
+}
+
+.pcp-axis-label:hover {
+  font-weight: bold;
 }

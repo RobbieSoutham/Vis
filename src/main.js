@@ -1,6 +1,6 @@
 // Try to create bezzier from scratch acording to control points in paper
-var margin = {top: 30, right: 0, bottom: 30, left: 30},
-    width = window.innerWidth/2 - 100 - margin.left - margin.right,
+var margin = {top: 50, right: 100, bottom: 5, left: 0},
+    width = window.innerWidth/1.9 - 100 - margin.left - margin.right,
     height = innerHeight/2.3 - margin.top - margin.bottom;
 
 var dataStore = {}
@@ -43,15 +43,14 @@ d3.csv("data/final.csv").get( function(data) {
         buildControls(data);
         buildPCP(data);
         buildDists(data);
-        buildScatter(data);
-        
+        buildScatter(data);    
     });
 
 // Load for DR scatter
 function buildScatter(data){
-    var margin = {top: 10, right: 30, bottom: 30, left: 50},
-    width = window.innerWidth/3 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    var margin = {top: 50, right: 5, bottom: 30, left: 50},
+    width = window.innerWidth/3.5 - margin.left - margin.right,
+    height = window.innerHeight/2.3 - margin.top - margin.bottom;
 
     var xMax = d3.max(data, function(d) { return +d['Component 0'];});
     var xMin = d3.min(data, function(d) { return +d['Component 0'];});
@@ -63,6 +62,7 @@ function buildScatter(data){
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
     .append("g")
+        .attr("class", "h6 small")
         .attr("transform",
             "translate(" + (margin.left) + "," + (margin.top-3) + ")");
 
@@ -103,20 +103,20 @@ function buildScatter(data){
             .attr("x", 0 - (height / 2))
             .attr("dy", "1em")
             .style("text-anchor", "middle")
-            .attr("class", "y label")
+            .attr("class", "y-label h6")
             .text("Component 1");
 
         svg.append("text")
             .attr("transform",
                     "translate(" + (width/2) + " ," + 
                     (height + margin.bottom) + ")")
-            .attr("class", "x label")
+            .attr("class", "x-label h6")
             .attr("text-anchor", "middle")
             .text("Component 0");
 }
 
 function buildPCP(data) {
-    // Setupmain plot
+    // Setup main plot
     pcp = d3.select("#pcp")
         .append("svg")
             .attr("width", window.innerWidth)
@@ -146,10 +146,9 @@ function drawPcp(data) {
 
     // Plot paths
     console.log(data)
-   paths = pcp.selectAll("myPath").data(data)
+    paths = pcp.selectAll("myPath").data(data)
            .enter()
            .append("path")
-           //.attr("class", function(d) { return d['Label']; })
            .attr("d", path)
            .style("fill", "none")
            .style("opacity", 0.5)
@@ -192,6 +191,7 @@ function drawPcp(data) {
     .style("text-anchor", "middle")
     .text(function(d) { return d; })
     .style("fill", "black")
+    .attr("class",  "h6 pcp-axis-label")
     .attr("y", "-15").on("mouseover", function (d) {
         d3.select(this)
             .style("cursor", "move")
@@ -251,9 +251,10 @@ function buildControls(data) {
         // Change to selected group and redraw
         removeLegend()
         currentBrush = d3.select(this).property("value")
+        updateBrush()
         buildLegend(data)
-        removePcp()
-        drawPcp(data)
+        //removePcp()
+        //drawPcp(data)
     })
     buildLegend(data)
     
@@ -277,8 +278,12 @@ function buildControls(data) {
         .attr("checked", true)
         .on("click", d => {
             bundlingEnabled = bundlingEnabled ? false : true;
+            // Update the bundle slider
+            d3.select("#bundleSlider").attr("disabled", bundlingEnabled ? true : null)
+
+            // Redraw PCP plot
             removePcp();
-            drawPcp(data);
+            //drawPcp(data);
 
         })
 
@@ -389,9 +394,10 @@ function buildLegend(data) {
         .enter()
         .append("text")
             .attr("x", 75)
-            .attr("y", function(d,i){ return 15 + i*(3+20)})
+            .attr("y", function(d,i){ return 25 + i*(3+20)})
             .text(function(d){ return d})
             .attr("text-anchor", "right")
+            .attr("class", "h6")
             .style("alignment-baseline", "middle")
         .on("click", selection);
 
@@ -401,7 +407,7 @@ function buildLegend(data) {
         .append("g")
         .append("rect")
             .attr("x", 50)
-            .attr("y", function(d,i){ return 5 + i*(3+20)})
+            .attr("y", function(d,i){ return 15 + i*(3+20)})
             .attr("width", "20")
             .attr("height", "20")
             .style("fill", function(d) { return brush(d)})
@@ -486,4 +492,9 @@ function removePcp() {
 Array.prototype.move = function(from,to){
     this.splice(to,0,this.splice(from,1)[0]);
     return this;
+}
+
+function updateBrush() {
+    d3.selectAll("circle").style("fill", function(d){ return(brush(d[currentBrush]))})
+    paths.style("stroke", function(d){ return(brush(d[currentBrush]))})
 }

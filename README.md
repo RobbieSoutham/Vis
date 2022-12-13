@@ -12,7 +12,8 @@ TODO:
 - [x] Update spacing when axis is removed
 - [x] Implement brush changes
 - [x] Implement brush highlighting
-- [ ] Add violin + beeswarm plots
+- [x] Add violin + beeswarm plots
+- [ ] Decide whether to change to box plot
 - [ ] Add point selection
 - [ ] Make brushing highlight easier to see by adding weighting based on sample no
 - [ ] Test on python live server
