@@ -19,6 +19,12 @@
   align-items: center;
   width: 100%;
   overflow: hidden;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#scatter {
+  max-width: 25%;
 }
 
 #legend div {
@@ -43,14 +49,29 @@
 #controls {
   background-color: lightgrey;
   border-radius: 5px;
-  width: 25%;
-  min-width: 350px;
-  margin-top: 25px;
-  margin-right: 50px;
-  height: 50%;
   display: flex;
   flex-direction: column;
 }
+
+
+.h6{
+    font-size:0.8vw !important;
+}
+
+#dist2 svg g {
+  position: absolute !important;
+  right: 0px;
+}
+
+#visContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+}
+
+html, body{min-height:100%;}
+body{height:100vh;}
 
 
 .custom-switch.custom-switch {

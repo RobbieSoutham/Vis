@@ -1,4 +1,4 @@
-var margin = {top: 50, right: 100, bottom: 5, left: 50},
+var margin = {top: 50, right: window.innerWidth/1.9/13, bottom: 5, left:  window.innerWidth/1.9/20},
     width = window.innerWidth/1.9 - 100 - margin.left - margin.right,
     height = innerHeight/2.3 - margin.top - margin.bottom;
 
@@ -44,12 +44,11 @@ d3.csv("data/final.csv").get( function(data) {
         buildDists(data);
         buildScatter(data);  
         
-        d3.select(window)
-        .on("resize", function() {
-            var targetWidth = chart.node().getBoundingClientRect().width;
-            pcp.attr("width", targetWidth);
-            pcp.attr("height", targetWidth / aspect);
-        });
+        // Hacky responsiveness
+        // TODO: dont reload whole page...
+        window.addEventListener('resize', () => {
+            location.reload();
+        } );
     });
 
 // Load for DR scatter

@@ -12,26 +12,27 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div id="firstRow" class="flex">
-        <div id="dist1", class="flex auto"></div>
-        <div id="dist2" class="flex auto"></div>
-    </div>
+    <div id="visContainer" class="d-flex">
+        <div id="firstRow">
+            <div id="dist1"></div>
+            <div id="dist2"></div>
+        </div>
 
-    <div id="secondRow" class="flex">
-        <div id="scatter" class="flex auto"></div>
-        <div id="pcp" class="flex auto"></div>
-        
-        <div id="controls" class="flex auto">
-            <div id="legend">
-                <div>
-                    <label class="input-label" for="brushSelect">Brush</label>
-                    <select id="brushSelect"></select>
+        <div id="secondRow">
+            <div id="scatter"></div>
+            <div id="pcp"></div>
+            
+            <div id="controls">
+                <div id="legend">
+                    <div>
+                        <label class="input-label" for="brushSelect">Brush</label>
+                        <select id="brushSelect"></select>
+                    </div>
+                    
                 </div>
-                
+                <div id="buttons"></div>
             </div>
-            <div id="buttons"></div>
         </div>
     </div>
-    
 </body>
 </html>

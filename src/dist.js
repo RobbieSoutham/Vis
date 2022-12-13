@@ -16,11 +16,11 @@ function buildDists(data) {
 
    var totalTime = d3.select("#dist2")
        .append("svg")
-       .attr("width", width + margin.left + margin.right)
+       .attr("width", width + margin.left)
        .attr("height", height + margin.top + margin.bottom)
        .append("g")
        .attr("transform",
-           "translate(" + (margin.left+50) + "," + margin.top + ")");
+           "translate(" + (margin.left+60) + "," + margin.top + ")");
 
     buildPlot(totalAbsences, ["Social smoker", "Social drinker"], "counts", data)
     buildPlot(totalTime, ["Social smoker", "Social drinker"], "total absence time", data)
