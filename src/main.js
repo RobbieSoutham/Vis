@@ -1,5 +1,4 @@
-// Try to create bezzier from scratch acording to control points in paper
-var margin = {top: 50, right: 100, bottom: 5, left: 0},
+var margin = {top: 50, right: 100, bottom: 5, left: 50},
     width = window.innerWidth/1.9 - 100 - margin.left - margin.right,
     height = innerHeight/2.3 - margin.top - margin.bottom;
 
@@ -43,7 +42,14 @@ d3.csv("data/final.csv").get( function(data) {
         buildControls(data);
         buildPCP(data);
         buildDists(data);
-        buildScatter(data);    
+        buildScatter(data);  
+        
+        d3.select(window)
+        .on("resize", function() {
+            var targetWidth = chart.node().getBoundingClientRect().width;
+            pcp.attr("width", targetWidth);
+            pcp.attr("height", targetWidth / aspect);
+        });
     });
 
 // Load for DR scatter
@@ -140,7 +146,7 @@ function drawPcp(data) {
      for (dim in displayDims) {
         let name = displayDims[dim]
         pcpY[name] = d3.scaleLinear()
-            .domain(d3.extent(data, function(d) {;return +d[name];}))
+            .domain(d3.extent(data, function(d) { return +d[name] }))
             .range([height, 0])
     }
 
@@ -168,19 +174,18 @@ function drawPcp(data) {
         d3.select(this).attr("transform", "translate(" + d3.event.x + ")");
     })
     .on("end", function(event, d) {
+        // Move selected axes to next closest position from drop location
         let axisPos = width/displayDims.length;
-        let currentIdx = displayDims.indexOf(d);
-        let nextIdx = Math.floor(Math.min(width, Math.max(0, event.x))/axisPos);
+        let currentIdx = d;
+        let nextIdx = Math.floor(Math.min(width, Math.max(0, d3.event.x))/axisPos);
 
         displayDims = displayDims.move(currentIdx, nextIdx);
-        
-        console.log(Math.max(0, this.__origin__ += event.x))
-        console.log(currentIdx, nextIdx, Math.min(width, Math.max(0, event.x))/axisPos)
 
+        // Redraw PCP
         removePcp();
         drawPcp(data);
 
-        d3.select(this).style("opacity", 1);
+
     })  
     )
     .attr("transform", function(d) { return "translate(" + pcpX(d) + ")"; })
@@ -281,7 +286,7 @@ function buildControls(data) {
 
             // Redraw PCP plot
             removePcp();
-            //drawPcp(data);
+            drawPcp(data);
 
         })
 
