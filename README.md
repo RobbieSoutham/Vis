@@ -13,7 +13,8 @@ TODO:
 - [x] Implement brush changes
 - [x] Implement brush highlighting
 - [x] Add violin + beeswarm plots
+- [x] Test on python live server
 - [ ] Decide whether to change to box plot
 - [ ] Add point selection
 - [ ] Make brushing highlight easier to see by adding weighting based on sample no
-- [ ] Test on python live server
+
