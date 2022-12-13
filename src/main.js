@@ -90,7 +90,7 @@ function buildScatter(data){
         .data(data)
         .enter()
         .append("circle")
-            .attr("cx", function (d) {console.log("here");return x(d['Component 0']); } )
+            .attr("cx", function (d) {return x(d['Component 0']); } )
             .attr("cy", function (d) { return y(d['Component 1']); } )
             .attr("r", 3)
             .style("fill", function(d){return brush(d[currentBrush])})    
@@ -253,8 +253,6 @@ function buildControls(data) {
         currentBrush = d3.select(this).property("value")
         updateBrush()
         buildLegend(data)
-        //removePcp()
-        //drawPcp(data)
     })
     buildLegend(data)
     
@@ -394,7 +392,7 @@ function buildLegend(data) {
         .enter()
         .append("text")
             .attr("x", 75)
-            .attr("y", function(d,i){ return 25 + i*(3+20)})
+            .attr("y", function(d,i){ return 20 + i*(3+20)})
             .text(function(d){ return d})
             .attr("text-anchor", "right")
             .attr("class", "h6")
@@ -407,7 +405,7 @@ function buildLegend(data) {
         .append("g")
         .append("rect")
             .attr("x", 50)
-            .attr("y", function(d,i){ return 15 + i*(3+20)})
+            .attr("y", function(d,i){ return 10 + i*(3+20)})
             .attr("width", "20")
             .attr("height", "20")
             .style("fill", function(d) { return brush(d)})
@@ -433,9 +431,9 @@ function buildLegend(data) {
 
     // Apply brush on click
     function selection(elem, value) {
-        console.log(currentSelection)
         // Toggle focus
-        if (currentSelection == value) {
+        if (currentSelection === value) {
+            console.log("Is val")
             currentSelection = "";
             // Send back
             paths.each(function(d) { 
@@ -458,6 +456,7 @@ function buildLegend(data) {
             // Bring to front
             paths.each(function(d) { 
                 if (d[currentBrush] == value) {
+                    
                     this.parentNode.appendChild(this);
                 }
                 
