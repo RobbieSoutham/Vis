@@ -292,8 +292,10 @@ function buildControls(data) {
         .attr("checked", true)
         .on("click", d => {
             bundlingEnabled = bundlingEnabled ? false : true;
+            console.log(bundlingEnabled)
             // Update the bundle slider
-            d3.select("#bundleSlider").attr("disabled", bundlingEnabled ? true : null)
+            d3.select("#bundleSlider").attr("disabled", bundlingEnabled ? null : false)
+            console.log(bundlingEnabled ? true : null)
 
             // Redraw PCP plot
             removePcp();
