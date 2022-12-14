@@ -191,8 +191,7 @@ function drawPcp(data) {
                 if (d[currentBrush] == currentSelection) {
                     
                     this.parentNode.appendChild(this);
-                }
-                
+                }      
             })
 
             paths.style("opacity", function(d) {
@@ -400,15 +399,16 @@ function buildLegend(data) {
     var members = groups[currentBrush];
     console.log(members);
     brush.domain(members).range(d3.schemeSet1);
+    var w =60 +  members.length*(3+30) + 10
 
-    legend = d3.select("#legend").append("svg").attr("width", 200).attr("height", 50).style("float", "right")
+    legend = d3.select("#legend").append("svg").attr("width", w).attr("height", 50).style("float", "right")
 
 
     legend.selectAll("mylabels")
         .data(members)
         .enter()
         .append("text")
-            .attr("x", function(d,i){ return 60 + i*(3+20)})
+            .attr("x", function(d,i){ return 60 + i*(3+30)})
             .attr("y", 45)
             .text(function(d){ return d})
             .attr("text-anchor", "right")
@@ -416,12 +416,13 @@ function buildLegend(data) {
             .style("alignment-baseline", "middle")
         .on("click", selection);
 
+    let xPos = members.length == 2 ? 60 : 55
     legend.selectAll("mydots")
         .data(members)
         .enter()
         .append("g")
         .append("rect")
-            .attr("x", function(d,i){ return 55 + i*(3+20)})
+            .attr("x", function(d,i){ return xPos + i*(3+30)})
             .attr("y", 10)
             .attr("width", "20")
             .attr("height", "20")
