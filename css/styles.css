@@ -40,15 +40,19 @@
   max-width: 25%;
 }
 
-#legend div {
+#legend {
   display: flex;
   padding: 15px;
   padding-top: 10px;
   padding-bottom: 0px;
-  align-items: flex-start;
+  flex-direction: column;
   font-weight: bold;
   justify-content: space-between;
   
+}
+
+#brushSelect {
+  margin-left: 20px;
 }
 
 #buttons {

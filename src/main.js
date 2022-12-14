@@ -363,9 +363,10 @@ function buildControls(data) {
         .append("option")
         .text(function (d) { return d; })
         .attr("value", function (d) { return d; })
+        .style("float", "right")
     
     d3.select("#brushSelect")
-        .on("input", function(d) {
+        .on("change", function(d) {
         // Change to selected group and redraw
             removeLegend()
             currentBrush = d3.select(this).property("value")
@@ -497,9 +498,9 @@ function removeLegend() {
 function buildLegend(data) {
     var members = groups[currentBrush]
     brush.domain(members).range(d3.schemeSet1)
-    var w =60 +  members.length*(3+30) + 10
+    var w = 60 +  members.length*(3+30) + 10
 
-    legend = d3.select("#legend")
+    legend = d3.select("#legendSelect")
         .append("svg")
             .attr("width", w)
             .attr("height", 50)
