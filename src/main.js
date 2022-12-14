@@ -172,7 +172,6 @@ function updatePointSelection(data, extent, xScale, yScale, x, y) {
         } else {
             // update paths
             paths.style("opacity", (d) => inBrushSelect.includes(d) ? 0.5 : 0.1)
-            
             d3.selectAll("circle").style("opacity", (d) => inBrushSelect.includes(d) ? 1 : 0.2)
 
             console.log(paths)
@@ -193,7 +192,6 @@ function updatePointSelection(data, extent, xScale, yScale, x, y) {
         }
 
         // Only focus ponits that are in the current brush if active
-        d3.selectAll("circle").classed("unselected", null)
         d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => isHighlight(d) ? 1: 0)
         d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => isHighlight(d) ? 1 : 0.2)
 
@@ -367,11 +365,22 @@ function buildControls(data) {
     
     d3.select("#brushSelect")
         .on("change", function(d) {
-        // Change to selected group and redraw
-            removeLegend()
+            console.log(currentBrush)
+        // Change to selected brush and redraw
             currentBrush = d3.select(this).property("value")
-            updateBrush()
+            currentSelection = ""
+            inBrushSelect = []
+            
+            removeLegend()  
             buildLegend(data)
+            // Check if selection has been previosly made
+            
+           
+        
+           updateBrush()
+           selection("", data)
+            
+            
         })
     buildLegend(data)
     
@@ -553,7 +562,7 @@ function buildLegend(data) {
 function selection(value, data) {
     if (currentSelection === value && d3.event.type == "click") {
         console.log("RESET")
-        d3.select(d3.event.target).classed("active", (x) => x in window ? false: null)
+        d3.select(d3.event.target).classed("active", null)
 
         currentSelection = "";
        
@@ -574,7 +583,7 @@ function selection(value, data) {
 
     } else {
         if (d3.event.type ==  "click") {
-            d3.select(d3.event.target).classed("active", (x) => x in window ? true: null)
+            d3.select(d3.event.target).classed("active", (d) => d==value ? true : null)
         }
 
         currentSelection = value
@@ -594,18 +603,27 @@ function selection(value, data) {
             
         })
 
-        
+        console.log(inPointSelect.length === 0, inBrushSelect.length === 0)
+        if (inBrushSelect.length === 0) {
+            console.log("in brush", inPointSelect)
+            // Incase of redraw with no selection brush
+            if (inPointSelect.length != 0) {
+                d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) ? 0 : 0)
+                d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) ? 1 : 0.2)
+                paths.style("opacity", (d) => inPointSelect.includes(d) ? 0.5 : 0)
+            } else {
+                d3.selectAll("#firstRow").selectAll("circle").style("opacity", 1)
+                d3.selectAll("#scatter").selectAll("circle").style("opacity", 1)
+                paths.style("opacity", (d) => 0.5)
+            }
+           
+            
+        } else 
         // Account for point selection brush
         if (inPointSelect.length === 0) {
             d3.selectAll("circle").style("opacity", (d) => inBrushSelect.includes(d) ? 1 : 0.2)
             paths.style("opacity", (d) => inBrushSelect.includes(d) ? 1 : 0.05)
 
-        } else if (inBrushSelect.length === 0) {
-            console.log("in brush")
-            // Incase of redraw with no selection brush
-            d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) ? 1 : 0)
-            d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) ? 1 : 0.2)
-            paths.style("opacity", (d) => inPointSelect.includes(d) ? 0.5 : 0)
         }
         else {
             d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) && inBrushSelect.includes(d) ? 1 : 0)
@@ -631,6 +649,6 @@ Array.prototype.move = function(from,to){
 }
 
 function updateBrush() {
-    d3.selectAll("circle").style("fill", function(d){ return(brush(d[currentBrush]))})
+    d3.selectAll("circle").style("fill", function(d){return(brush(d[currentBrush]))})
     paths.style("stroke", function(d){ return(brush(d[currentBrush]))})
 }
