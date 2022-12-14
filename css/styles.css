@@ -87,6 +87,7 @@
 
 .input-label, .custom-control-label {
   font-size:0.7vw !important;
+  margin-left: 0px;
 }
 
 #dist2 svg g {
