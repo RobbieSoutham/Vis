@@ -1,4 +1,4 @@
-var margin = {top: 50, right: 150, bottom: 5, left:  75},
+var margin = {top: 50, right: 130, bottom: 5, left:  30},
 width = window.innerWidth/1.9 - margin.left - margin.right,
 height = innerHeight/2.3 - margin.top - margin.bottom
 dataStore = {},
@@ -15,7 +15,8 @@ groups = {},
 currentBrush = "Cluster",
 paths = null,
  currentSelection = "",
-inPointSeelct = []
+inPointSelect = []
+inBrushSelect = []
 
 // Load for parallel coordinates
 d3.csv("data/final.csv").get( function(data) {
@@ -42,7 +43,8 @@ d3.csv("data/final.csv").get( function(data) {
         buildControls(data);
         buildPCP(data);
         buildDists(data);
-        buildScatter(data);  
+        buildScatter(data);
+
         
         // Hacky responsiveness
         // TODO: dont reload whole page...
@@ -55,8 +57,8 @@ d3.csv("data/final.csv").get( function(data) {
 
 // Build the scatter plot for components of FA
 function buildScatter(data){
-    var margin = {top: 50, right: 50, bottom: 30, left: 50},
-    width = window.innerWidth/3 - margin.left - margin.right,
+    var margin = {top: 0, right: 100, bottom: 30, left: 40},
+    width = window.innerWidth/2.8 - margin.left - margin.right,
     height = window.innerHeight/2.3 - margin.top - margin.bottom;
 
     // Get max and min of X and Y to form axis domains
@@ -65,11 +67,16 @@ function buildScatter(data){
     var yMin = d3.max(data, function(d) { return +d['Component 1'];});
     var yMax = d3.min(data, function(d) { return +d['Component 1'];});
 
-    svg = d3.select("#scatter")
+    scatter = d3.select("#scatter")
     .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
-    .append("g")
+    
+    labelArea = scatter.append("g")
+        .attr("class", "h6 small")
+        .attr("transform","translate(" + (margin.left) + "," + (margin.top-3) + ")");
+
+    svg = scatter.append("g")
         .attr("class", "h6 small")
         .attr("transform",
             "translate(" + (margin.left) + "," + (margin.top-3) + ")");
@@ -105,7 +112,7 @@ function buildScatter(data){
 
 
         // Add axis labels
-        svg.append("text")
+        labelArea.append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 0 - margin.left)
             .attr("x", 0 - (height / 2))
@@ -114,53 +121,92 @@ function buildScatter(data){
             .attr("class", "y-label h6")
             .text("Component 1");
 
-        svg.append("text")
+        labelArea.append("text")
             .attr("transform",
-                    "translate(" + (width/2) + " ," + 
-                    (height + margin.bottom) + ")")
+                    "translate(" + (width/2) + " ," + (height + 30  ) + ")")
             .attr("class", "x-label h6")
             .attr("text-anchor", "middle")
             .text("Component 0");
 
         svg.call(d3.brush()
-            .on("start end", function(d, event) {updatePointSelection(d3.event.selection, x, y, "Component 0", "Component 1")})
+            .on("start end", function(d, event) {updatePointSelection(data, d3.event.selection, x, y, "Component 0", "Component 1")})
                 
-        ).on("onClick", console.log("clicked"))
+        )
 }
 
-function updatePointSelection(extent, xScale, yScale, x, y) {
-    console.log("SELECTING",extent)
-    if (extent == null) {
-        console.log("selected")
-        d3.selectAll("circle").classed("selected",
-            function(d){
-                inPointSeelct.includes(d) ? false : null
-            })
-        inPointSeelct = []
-    } else {
-        inPointselect = d3.selectAll("circle").classed("selected",
-            function(d){
-                if (x == null) {
-                    // Only check assert y values if no x is given
-                    return isBrushed(extent, null, yScale(d[y])) ? null : d
-                }
-                return isBrushed(extent, xScale(d[x]), yScale(d[y])) ? null : d
-            }
-        )
-    }
-    
+function updatePointSelection(data, extent, xScale, yScale, x, y) {
+    // Helpers
 
-        /*a =pcp.selectAll("path").classed("selected",
-        function(d){
-            return isBrushed(extent, xScale(d["Component 0"]), yScale(d["Component 1"])) ? null : d
+    function inSelect(d) {
+        if (x == null) {
+            // Only check assert y values if no x is given
+            return isInSelectPoints(extent, null, yScale(d[y])) ? d : null
         }
-        )*/
-
+        return isInSelectPoints(extent, xScale(d[x]), yScale(d[y])) ? d : null
     }
+
+    function isHighlighted(d) {
+        if (
+            (inPointSelect.includes(d) && inBrushSelect.includes(d) ||
+            inBrushSelect.length === 0 && inPointSelect.includes(d))
+        ) {
+            return true
+        }
+       return false
+    }
+
+    if (extent == null) {
+        // Check if current brush still active
+        if (inBrushSelect.length === 0) {
+            // Reset to default
+            d3.selectAll("circle").style("opacity", 1)
+            // Reset all points
+            paths.style("opacity", 0.5)
+            paths.each(function(d) { 
+                var firstChild = this.parentNode.firstChild;
+                if (firstChild) {
+                    this.parentNode.insertBefore(this, firstChild);
+                }
+                
+            })
+        } else {
+            // update paths
+            paths.style("opacity", (d) => inBrushSelect.includes(d) ? 0.5 : 0.1)
+            
+            d3.selectAll("circle").style("opacity", (d) => inBrushSelect.includes(d) ? 1 : 0.2)
+
+            console.log(paths)
+            
+        }
+        
+        inPointSelect = []
+        
+    } else {
+        inPointSelect = data.filter((d) => inSelect(d))
+
+        function isHighlight(d) {
+            if (inBrushSelect.length === 0) {
+                return inPointSelect.includes(d)
+            } else {
+                return inPointSelect.includes(d) && inBrushSelect.includes(d)
+            }
+        }
+
+        // Only focus ponits that are in the current brush if active
+        d3.selectAll("circle").classed("unselected", null)
+        d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => isHighlight(d) ? 1: 0)
+        d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => isHighlight(d) ? 1 : 0.2)
+
+        // Update PCP paths
+        paths.style("opacity", (d) => isHighlight(d) ? 1 : 0) 
+  
+     }
+
+}
     
   
    // A function that return TRUE or FALSE according if a dot is in the selection or not
-   function isBrushed(brush_coords, cx, cy) {
+   function isInSelectPoints(brush_coords, cx, cy) {
     
     var x0 = brush_coords[0][0],
         x1 = brush_coords[1][0],
@@ -175,11 +221,12 @@ function updatePointSelection(extent, xScale, yScale, x, y) {
    return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;    // This return TRUE or FALSE depending on if the points is in the selected area
 }
 
-function resetPointSelect() {
+function resetPointSelect(data) {
     console.log("NONE")
-    selection(null, currentSelection)
+    temp = currentSelection
+    currentSelection = ""
+    selection(temp, data)
 }
-
 
 
 function buildPCP(data) {
@@ -244,21 +291,6 @@ function drawPcp(data) {
         // Redraw PCP
         removePcp();
         drawPcp(data);
-
-        // Check if selection has been previosly made
-        if (currentSelection !== "") {
-            // Bring to front
-            paths.each(function(d) { 
-                if (d[currentBrush] == currentSelection) {
-                    
-                    this.parentNode.appendChild(this);
-                }      
-            })
-
-            paths.style("opacity", function(d) {
-                return d[currentBrush] == currentSelection ? 1 : 0.1
-            })
-        }
     }))
     .attr("transform", function(d) { return "translate(" + pcpX(d) + ")"; })
     .each(function(d) {
@@ -273,6 +305,14 @@ function drawPcp(data) {
         d3.select(this)
             .style("cursor", "move")
     })
+
+    // Check if selection has been previosly made
+    if (inPointSelect.length !== 0 || inBrushSelect.length !== 0) {
+        nextSelection = currentSelection
+        currentSelection = ""
+       
+        selection(nextSelection, data)
+    }
 }
 
  // Implementation based on: https://ieeexplore.ieee.org/document/8107953
@@ -324,20 +364,21 @@ function buildControls(data) {
         .text(function (d) { return d; })
         .attr("value", function (d) { return d; })
     
-    d3.select("#brushSelect") .on("input", function(d) {
+    d3.select("#brushSelect")
+        .on("input", function(d) {
         // Change to selected group and redraw
-        removeLegend()
-        currentBrush = d3.select(this).property("value")
-        updateBrush()
-        buildLegend(data)
-    })
+            removeLegend()
+            currentBrush = d3.select(this).property("value")
+            updateBrush()
+            buildLegend(data)
+        })
     buildLegend(data)
     
     // Line bundling options
     d3.select("#buttons")
         .append("text")
+        .attr("class", "h6 control-heading")
         .text("Line bundling")
-        .style("font-weight", "bold")
     
     // Add toggle
     d3.select("#buttons")
@@ -355,7 +396,6 @@ function buildControls(data) {
             bundlingEnabled = bundlingEnabled ? false : true;
             // Update the bundle slider
             d3.select("#bundleSlider").attr("disabled", bundlingEnabled ? null : false)
-            console.log(bundlingEnabled ? true : null)
 
             // Redraw PCP plot
             removePcp();
@@ -378,7 +418,7 @@ function buildControls(data) {
         .append("label")
         .text("Non-bundled portion")
         .attr("for", "bundleSlider")
-        .attr("class", "form-label")
+        .attr("class", "input-label")
 
     d3.select(".bundle-slider")
         .append("input")
@@ -398,7 +438,7 @@ function buildControls(data) {
     d3.selectAll("#buttons")
         .append("text")
         .text("Dimensions")
-        .style("font-weight", "bold")
+        .attr("class", "h6 control-heading")
 
     d3.select("#buttons").selectAll("myAxis")
         .data(dims)
@@ -437,7 +477,6 @@ function buildControls(data) {
             filtered.push(dim);
         }
 
-        console.log(filtered)
         filtered.forEach(dim1 => {
             displayDims = displayDims.filter(function(dim2) {
                 return dim2 !== dim1;
@@ -460,7 +499,11 @@ function buildLegend(data) {
     brush.domain(members).range(d3.schemeSet1)
     var w =60 +  members.length*(3+30) + 10
 
-    legend = d3.select("#legend").append("svg").attr("width", w).attr("height", 50).style("float", "right")
+    legend = d3.select("#legend")
+        .append("svg")
+            .attr("width", w)
+            .attr("height", 50)
+            .style("float", "right")
 
 
     legend.selectAll("mylabels")
@@ -473,7 +516,6 @@ function buildLegend(data) {
             .attr("text-anchor", "right")
             .attr("class", "h6")
             .style("alignment-baseline", "middle")
-        .on("click", selection);
 
     let xPos = members.length == 2 ? 60 : 55
     legend.selectAll("mydots")
@@ -486,11 +528,10 @@ function buildLegend(data) {
             .attr("width", "20")
             .attr("height", "20")
             .style("fill", function(d) { return brush(d)})
-        .on("click", selection);
+        .on("click", (d) => selection(d, data));
 
         d3.selection.prototype.moveToFront = function(d) {
             this.each(function(d){
-                console.log(d, "asdf");
               this.parentNode.appendChild(this);
             });
           };
@@ -508,53 +549,70 @@ function buildLegend(data) {
 }
 
 // Apply brush on click
-function selection(elem, value) {
-    // Toggle focus]
-    console.log("SELECTING",  value)
-    if (currentSelection === value) {
-        console.log("IN")
+function selection(value, data) {
+    if (currentSelection === value && d3.event.type == "click") {
+        console.log("RESET")
+        d3.select(d3.event.target).classed("active", (x) => x in window ? false: null)
+
         currentSelection = "";
-        // Send back
+       
+        // Send back if not in point select
         paths.each(function(d) { 
             var firstChild = this.parentNode.firstChild;
             if (firstChild) {
-                this.parentNode.insertBefore(this, firstChild);
+                    this.parentNode.insertBefore(this, firstChild);
             }
             
         })
 
-        paths.style("stroke-width", 1)
-        paths.style("opacity", 0.5)
-        d3.select("#scatter").selectAll("circle").style("opacity", 1)
-        d3.select("#dist1").selectAll("circle").style("opacity", 1)
-        d3.select("#dist2").selectAll("circle").style("opacity", 1)
+        // Ensure selected points are kept
+        d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => (inPointSelect.includes(d) || inPointSelect.length === 0) ? 1 : 0)
+        d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => (inPointSelect.includes(d) || inPointSelect.length === 0) ? 1 : 0.2)
+        paths.style("opacity", (d) => (inPointSelect.includes(d) || inPointSelect.length === 0) ? 0.5 : 0)
+        inBrushSelect = []
 
     } else {
-        currentSelection = value
+        if (d3.event.type ==  "click") {
+            d3.select(d3.event.target).classed("active", (x) => x in window ? true: null)
+        }
 
-        // Bring to front
+        currentSelection = value
+        inBrushSelect = data.filter((d) => d[currentBrush] == value ? d : null )
+        
+        // Bring everything in group to front
         paths.each(function(d) { 
-            if (d[currentBrush] == value) {
-                
+            if (inBrushSelect.includes(d)) {
                 this.parentNode.appendChild(this);
             }
             
         })
 
-        paths.style("opacity", function(d) {
-            return d[currentBrush] == value ? 1 : 0.1
+        // Bring axes and ticks back to front
+        pcp.selectAll("g").each(function(d) {
+                this.parentNode.appendChild(this);
+            
         })
 
-        d3.select("#scatter").selectAll("circle").style("opacity", function(d) {
-            return d[currentBrush] == value ? 1 : 0.2
-        })
+        
+        // Account for point selection brush
+        if (inPointSelect.length === 0) {
+            d3.selectAll("circle").style("opacity", (d) => inBrushSelect.includes(d) ? 1 : 0.2)
+            paths.style("opacity", (d) => inBrushSelect.includes(d) ? 1 : 0.05)
 
-        d3.select("#dist1").selectAll("circle").style("opacity", function(d) {
-            return d[currentBrush] == value ? 1 : 0.2
-        })
-        d3.select("#dist2").selectAll("circle").style("opacity", function(d) {
-            return d[currentBrush] == value ? 1 : 0.2
-        })
+        } else if (inBrushSelect.length === 0) {
+            console.log("in brush")
+            // Incase of redraw with no selection brush
+            d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) ? 1 : 0)
+            d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) ? 1 : 0.2)
+            paths.style("opacity", (d) => inPointSelect.includes(d) ? 0.5 : 0)
+        }
+        else {
+            d3.selectAll("#firstRow").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) && inBrushSelect.includes(d) ? 1 : 0)
+            d3.selectAll("#scatter").selectAll("circle").style("opacity", (d) => inPointSelect.includes(d) && inBrushSelect.includes(d)? 1 : 0.2)
+            paths.style("opacity", (d) => inPointSelect.includes(d) && inBrushSelect.includes(d) ? 0.5 : 0)
+        
+        }
+
     }
 }
 

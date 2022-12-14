@@ -2,7 +2,7 @@
 // Code based on various D3 gallery tutorials
 function buildDists(data) {
     // set the dimensions and margins of the graph
-    var margin = {top: 10, right: 0, bottom: 60, left: 0},
+    var margin = {top: 10, right: 50, bottom: 60, left: 75},
     width = window.innerWidth/2 - margin.left - margin.right,
     height = window.innerHeight/2.3 - margin.top - margin.bottom;
 
@@ -10,20 +10,54 @@ function buildDists(data) {
        .append("svg")
        .attr("width", width + margin.left + margin.right)
        .attr("height", height + margin.top + margin.bottom)
-       .append("g")
+    
+    var labelAreaCount = totalAbsences.append("g")
        .attr("transform",
-           "translate(" + (margin.left+50) + "," + margin.top + ")");
+       "translate(" + (margin.left) + "," + margin.top + ")");
+    
+    totalAbsences = totalAbsences.append("g")
+      .attr("transform",
+        "translate(" + (margin.left) + "," + margin.top + ")");
 
-   var totalTime = d3.select("#dist2")
+    var totalTime = d3.select("#dist2")
        .append("svg")
        .attr("width", width + margin.left)
        .attr("height", height + margin.top + margin.bottom)
-       .append("g")
+    
+    var labelAreaTime = totalTime.append("g")
+        .attr("transform",
+        "translate(" + (margin.left) + "," + margin.top + ")");
+    totalTime = totalTime.append("g")
        .attr("transform",
-           "translate(" + (margin.left+60) + "," + margin.top + ")");
+           "translate(" + (margin.left) + "," + margin.top + ")");
+
+
+           
+    // Add axis labels
+    labelAreaTime.append("g").append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - 50)
+    .attr("x", 0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .attr("class", "y-label, h6")
+    .text( "Total absence time (h)");
+
+    // Add axis labels
+    labelAreaCount.append("g").append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - 50)
+    .attr("x", 0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .attr("class", "y-label, h6")
+    .text( "Total Number of Absences");
 
     buildPlot(totalAbsences, ["Social smoker", "Social drinker"], "counts", data)
     buildPlot(totalTime, ["Social smoker", "Social drinker"], "total absence time", data)
+
+    
+
 }   
 
 // Creates a violin and jitter for each group values on the given object
@@ -199,38 +233,15 @@ function buildPlot(svg, groups, variable, data) {
         .style("fill", function(d){ return(brush(d[currentBrush]))})
         .attr("stroke", "white")
 
-        // Add axis labels
-        svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - 50)
-        .attr("x", 0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .attr("class", "y-label, h6")
-        .text(variable == "counts" ? "Total absences" : "Total absence time (h)");
+       
 
         delete found;
 
+        // Add point selection brush
         svg.call(d3.brush()
-            .on("start end", function(d, event) {updatePointSelection(d3.event.selection, x, y, null, variable)})
+            .on("start end", function(d, event) {updatePointSelection(data, d3.event.selection, x, y, null, variable)})
                 
         ).on("onClick", console.log("clicked"))
      
     })
 }
-       
-
-function kernelDensityEstimator(kernel, X) {
-   return function(V) {
-     return X.map(function(x) {
-       return [x, d3.mean(V, function(v) {
-           return kernel(x - v); })];
-     });
-   };
- }
- 
- function kernelEpanechnikov(k) {
-   return function(v) {
-     return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
-   };
- }

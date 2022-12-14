@@ -19,11 +19,11 @@
   align-items: center;
   width: 100%;
   overflow: hidden;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
 }
 
-.selected {
+.unselected {
   opacity: 0;
 }
 
@@ -33,6 +33,7 @@
 
 #secondRow {
   margin-top:2%;
+  margin-bottom: 1%;
 }
 
 #scatter {
@@ -58,17 +59,30 @@
   margin-top: 5px;
 }
 
+* {
+  margin:auto;
+}
 #controls {
   background-color: lightgrey;
   border-radius: 5px;
-  display: block;
+  margin: auto;
+  padding-top: 5x;
+  display: flex;
   flex-direction: column;
-  height: fit-content;
 }
 
 
 .h6{
-    font-size:0.8vw !important;
+  font-size:0.9vw !important;
+}
+
+
+.control-heading {
+  font-weight: bold;
+}
+
+.input-label, .custom-control-label {
+  font-size:0.7vw !important;
 }
 
 #dist2 svg g {
@@ -115,7 +129,7 @@ html, body{min-height:100%;}
   width: 50%;
 }
 
-#legend svg g rect:hover {
+#legend svg g rect:hover, .active {
   stroke: black;
 }
 
