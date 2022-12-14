@@ -15,6 +15,7 @@ groups = {},
 currentBrush = "Cluster",
 paths = null,
  currentSelection = "",
+inPointSeelct = []
 
 // Load for parallel coordinates
 d3.csv("data/final.csv").get( function(data) {
@@ -48,6 +49,8 @@ d3.csv("data/final.csv").get( function(data) {
         window.addEventListener('resize', () => {
             location.reload();
         } );
+
+    
     });
 
 // Build the scatter plot for components of FA
@@ -90,7 +93,7 @@ function buildScatter(data){
 
 
         // Add points
-        svg.append('g')
+        a = svg.append('g')
         .selectAll("dot")
         .data(data)
         .enter()
@@ -118,7 +121,66 @@ function buildScatter(data){
             .attr("class", "x-label h6")
             .attr("text-anchor", "middle")
             .text("Component 0");
+
+        svg.call(d3.brush()
+            .on("start end", function(d, event) {updatePointSelection(d3.event.selection, x, y, "Component 0", "Component 1")})
+                
+        ).on("onClick", console.log("clicked"))
 }
+
+function updatePointSelection(extent, xScale, yScale, x, y) {
+    console.log("SELECTING",extent)
+    if (extent == null) {
+        console.log("selected")
+        d3.selectAll("circle").classed("selected",
+            function(d){
+                inPointSeelct.includes(d) ? false : null
+            })
+        inPointSeelct = []
+    } else {
+        inPointselect = d3.selectAll("circle").classed("selected",
+            function(d){
+                if (x == null) {
+                    // Only check assert y values if no x is given
+                    return isBrushed(extent, null, yScale(d[y])) ? null : d
+                }
+                return isBrushed(extent, xScale(d[x]), yScale(d[y])) ? null : d
+            }
+        )
+    }
+    
+
+        /*a =pcp.selectAll("path").classed("selected",
+        function(d){
+            return isBrushed(extent, xScale(d["Component 0"]), yScale(d["Component 1"])) ? null : d
+        }
+        )*/
+
+    }
+    
+  
+   // A function that return TRUE or FALSE according if a dot is in the selection or not
+   function isBrushed(brush_coords, cx, cy) {
+    
+    var x0 = brush_coords[0][0],
+        x1 = brush_coords[1][0],
+        y0 = brush_coords[0][1],
+        y1 = brush_coords[1][1];
+
+    // If no x value given i.e. for non continious x, only uses y
+    if (cx == null) {
+        console.log(y0 <= cy && cy <= y1)
+        return y0 <= cy && cy <= y1 
+    }
+   return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;    // This return TRUE or FALSE depending on if the points is in the selected area
+}
+
+function resetPointSelect() {
+    console.log("NONE")
+    selection(null, currentSelection)
+}
+
+
 
 function buildPCP(data) {
     // Setup main plot
@@ -150,7 +212,6 @@ function drawPcp(data) {
     }
 
     // Plot paths
-    console.log(data)
     paths = pcp.selectAll("myPath").data(data)
            .enter()
            .append("path")
@@ -292,7 +353,6 @@ function buildControls(data) {
         .attr("checked", true)
         .on("click", d => {
             bundlingEnabled = bundlingEnabled ? false : true;
-            console.log(bundlingEnabled)
             // Update the bundle slider
             d3.select("#bundleSlider").attr("disabled", bundlingEnabled ? null : false)
             console.log(bundlingEnabled ? true : null)
@@ -366,7 +426,6 @@ function buildControls(data) {
 
     // Replots with updated dimensions
     function filterDimensions(dim) {
-        console.log(dim)
         displayDims = dims;
 
         // Update displayed dims
@@ -384,7 +443,6 @@ function buildControls(data) {
                 return dim2 !== dim1;
             })
         })
-        console.log(displayDims)
 
         // Remove previous plot
         removePcp(data);
@@ -398,9 +456,8 @@ function removeLegend() {
 }
 
 function buildLegend(data) {
-    var members = groups[currentBrush];
-    console.log(members);
-    brush.domain(members).range(d3.schemeSet1);
+    var members = groups[currentBrush]
+    brush.domain(members).range(d3.schemeSet1)
     var w =60 +  members.length*(3+30) + 10
 
     legend = d3.select("#legend").append("svg").attr("width", w).attr("height", 50).style("float", "right")
@@ -432,8 +489,6 @@ function buildLegend(data) {
         .on("click", selection);
 
         d3.selection.prototype.moveToFront = function(d) {
-            console.log("moving")
-            console.log(d)
             this.each(function(d){
                 console.log(d, "asdf");
               this.parentNode.appendChild(this);
@@ -449,54 +504,57 @@ function buildLegend(data) {
             });
         };
 
-    // Apply brush on click
-    function selection(elem, value) {
-        // Toggle focus
-        if (currentSelection === value) {
-            console.log("Is val")
-            currentSelection = "";
-            // Send back
-            paths.each(function(d) { 
-                var firstChild = this.parentNode.firstChild;
-                if (firstChild) {
-                    this.parentNode.insertBefore(this, firstChild);
-                }
-                
-            })
-
-            paths.style("stroke-width", 1)
-            paths.style("opacity", 0.5)
-            d3.select("#scatter").selectAll("circle").style("opacity", 1)
-            d3.select("#dist1").selectAll("circle").style("opacity", 1)
-            d3.select("#dist2").selectAll("circle").style("opacity", 1)
-
-        } else {
-            currentSelection = value
-
-            // Bring to front
-            paths.each(function(d) { 
-                if (d[currentBrush] == value) {
-                    
-                    this.parentNode.appendChild(this);
-                }
-                
-            })
     
-            paths.style("opacity", function(d) {
-                return d[currentBrush] == value ? 1 : 0.1
-            })
+}
 
-            d3.select("#scatter").selectAll("circle").style("opacity", function(d) {
-                return d[currentBrush] == value ? 1 : 0.2
-            })
+// Apply brush on click
+function selection(elem, value) {
+    // Toggle focus]
+    console.log("SELECTING",  value)
+    if (currentSelection === value) {
+        console.log("IN")
+        currentSelection = "";
+        // Send back
+        paths.each(function(d) { 
+            var firstChild = this.parentNode.firstChild;
+            if (firstChild) {
+                this.parentNode.insertBefore(this, firstChild);
+            }
+            
+        })
 
-            d3.select("#dist1").selectAll("circle").style("opacity", function(d) {
-                return d[currentBrush] == value ? 1 : 0.2
-            })
-            d3.select("#dist2").selectAll("circle").style("opacity", function(d) {
-                return d[currentBrush] == value ? 1 : 0.2
-            })
-        }
+        paths.style("stroke-width", 1)
+        paths.style("opacity", 0.5)
+        d3.select("#scatter").selectAll("circle").style("opacity", 1)
+        d3.select("#dist1").selectAll("circle").style("opacity", 1)
+        d3.select("#dist2").selectAll("circle").style("opacity", 1)
+
+    } else {
+        currentSelection = value
+
+        // Bring to front
+        paths.each(function(d) { 
+            if (d[currentBrush] == value) {
+                
+                this.parentNode.appendChild(this);
+            }
+            
+        })
+
+        paths.style("opacity", function(d) {
+            return d[currentBrush] == value ? 1 : 0.1
+        })
+
+        d3.select("#scatter").selectAll("circle").style("opacity", function(d) {
+            return d[currentBrush] == value ? 1 : 0.2
+        })
+
+        d3.select("#dist1").selectAll("circle").style("opacity", function(d) {
+            return d[currentBrush] == value ? 1 : 0.2
+        })
+        d3.select("#dist2").selectAll("circle").style("opacity", function(d) {
+            return d[currentBrush] == value ? 1 : 0.2
+        })
     }
 }
 

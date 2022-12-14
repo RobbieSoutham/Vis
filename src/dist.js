@@ -120,15 +120,10 @@ function buildPlot(svg, groups, variable, data) {
         if (count > countMax) {
             countMax = count
         }
-
-       })
-       data.forEach((d) => {
-           g = d[group] == "Yes" ? 0 : 1
-           console.log(sumstat[g][3], 0)
        })
 
        let maxIt = 40
-       svg
+       a = svg
        .selectAll("indPoints")
        .data(data)
        .enter()
@@ -195,7 +190,7 @@ function buildPlot(svg, groups, variable, data) {
                 })
                 
 
-                if (!overlap) { console.log("No overlap");break }
+                if (!overlap) { break }
             }
             posY.push
             return pos
@@ -215,6 +210,11 @@ function buildPlot(svg, groups, variable, data) {
         .text(variable == "counts" ? "Total absences" : "Total absence time (h)");
 
         delete found;
+
+        svg.call(d3.brush()
+            .on("start end", function(d, event) {updatePointSelection(d3.event.selection, x, y, null, variable)})
+                
+        ).on("onClick", console.log("clicked"))
      
     })
 }

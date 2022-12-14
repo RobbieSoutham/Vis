@@ -21,7 +21,10 @@
   overflow: hidden;
   justify-content: space-evenly;
   align-items: center;
+}
 
+.selected {
+  opacity: 0;
 }
 
 #firstRow {
